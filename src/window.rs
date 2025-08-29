@@ -1,10 +1,19 @@
-use sdl2::sys::{
-    SDL_CreateRenderer, SDL_CreateWindow, SDL_DestroyRenderer, SDL_DestroyTexture,
-    SDL_DestroyWindow, SDL_EventType, SDL_PollEvent, SDL_RenderPresent, SDL_Renderer,
-    SDL_RendererFlags, SDL_Texture, SDL_WINDOWPOS_UNDEFINED_MASK, SDL_Window, SDL_WindowFlags,
+use std::os::raw::c_void;
+
+use sdl2::{
+    pixels,
+    sys::{
+        SDL_CreateRenderer, SDL_CreateTexture, SDL_CreateWindow, SDL_DestroyRenderer,
+        SDL_DestroyTexture, SDL_DestroyWindow, SDL_EventType, SDL_PollEvent, SDL_Rect,
+        SDL_RenderCopy, SDL_RenderPresent, SDL_Renderer, SDL_RendererFlags, SDL_Texture,
+        SDL_UpdateTexture, SDL_WINDOWPOS_UNDEFINED_MASK, SDL_Window, SDL_WindowFlags,
+    },
 };
 
+use crate::buffer::Image;
+
 pub struct Window {
+    buffer: Image,
     window: *mut SDL_Window,
     renderer: *mut SDL_Renderer,
     texture: *mut SDL_Texture,
@@ -21,6 +30,8 @@ impl Window {
                 flags |= SDL_WindowFlags::SDL_WINDOW_FULLSCREEN as u32;
             }
 
+            let buffer = Image::new(buf_w as u32, buf_h as u32);
+
             let window = SDL_CreateWindow(
                 title,
                 SDL_WINDOWPOS_UNDEFINED_MASK as i32,
@@ -36,18 +47,47 @@ impl Window {
                 SDL_RendererFlags::SDL_RENDERER_ACCELERATED as u32,
             );
 
+            let texture = SDL_CreateTexture(
+                renderer,
+                pixels::PixelFormatEnum::RGBA32 as u32,
+                sdl2::render::TextureAccess::Static as i32,
+                buf_w,
+                buf_h,
+            );
+
             Self {
+                buffer,
                 window,
                 renderer,
-                texture: std::ptr::null_mut(),
+                texture,
             }
         }
     }
 
     pub fn update(&self) {
         unsafe {
+            SDL_UpdateTexture(
+                self.texture,
+                0 as *const SDL_Rect,
+                self.buffer.buffer.as_ptr() as *const c_void,
+                (self.buffer.width * 4) as i32,
+            );
+            SDL_RenderCopy(
+                self.renderer,
+                self.texture,
+                0 as *const SDL_Rect,
+                0 as *const SDL_Rect,
+            );
             SDL_RenderPresent(self.renderer);
         }
+    }
+
+    pub fn image(&self) -> &Image {
+        &self.buffer
+    }
+
+    pub fn image_mut(&mut self) -> &mut Image {
+        &mut self.buffer
     }
 
     pub fn keep_alive(&self) {}
