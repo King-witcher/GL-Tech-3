@@ -1,0 +1,112 @@
+use std::ops::{Add, Mul, Sub};
+
+#[derive(Clone, Copy, Debug)]
+pub struct Vector(pub f32, pub f32);
+
+impl Vector {
+    pub fn from_angle(angle_deg: f32) -> Vector {
+        let rad = angle_deg * TO_RAD;
+        Vector(rad.cos(), rad.sin())
+    }
+
+    pub fn module(&self) -> f32 {
+        f32::sqrt(self.0 * self.0 + self.1 * self.1)
+    }
+
+    pub fn dot_product(&self, other: &Vector) -> f32 {
+        self.0 * other.0 + self.1 * other.1
+    }
+
+    pub fn complex_product(&self, other: &Vector) -> Vector {
+        Vector(
+            self.0 * other.0 - self.1 * other.1,
+            self.0 * other.1 + self.1 * other.0,
+        )
+    }
+
+    pub fn rotation(&self) -> f32 {
+        if self.0 == 0.0 && self.1 == 0.0 {
+            return 0.0;
+        }
+
+        let temp = TO_DEG * f32::acos(self.0 / self.module());
+        if self.1 >= 0.0 { temp } else { 360.0 - temp }
+    }
+
+    // TODO: Optimize
+    pub fn set_rotation(&mut self, angle: f32) {
+        let length = self.module();
+        self.0 = length * angle.to_radians().cos();
+        self.1 = length * angle.to_radians().sin();
+    }
+}
+
+impl Add for Vector {
+    type Output = Vector;
+
+    fn add(self, other: Vector) -> Vector {
+        Vector(self.0 + other.0, self.1 + other.1)
+    }
+}
+
+impl Sub for Vector {
+    type Output = Vector;
+
+    fn sub(self, other: Vector) -> Vector {
+        Vector(self.0 - other.0, self.1 - other.1)
+    }
+}
+
+impl Mul<f32> for Vector {
+    type Output = Vector;
+
+    fn mul(self, scalar: f32) -> Vector {
+        Vector(self.0 * scalar, self.1 * scalar)
+    }
+}
+
+impl Mul for Vector {
+    type Output = f32;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.0 * rhs.0 + self.1 * rhs.1
+    }
+}
+
+const ZERO: Vector = Vector(0.0, 0.0);
+const IDENTITY: Vector = Vector(1.0, 1.0);
+const FORWARD: Vector = Vector(0.0, 1.0);
+const LEFT: Vector = Vector(-1.0, 0.0);
+const RIGHT: Vector = Vector(1.0, 0.0);
+const BACK: Vector = Vector(0.0, -1.0);
+
+const TO_RAD: f32 = std::f32::consts::PI / 180.0;
+const TO_DEG: f32 = 180.0 / std::f32::consts::PI;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    static EPSILON: f32 = 0.0001;
+
+    fn assert_aproximation(value: f32, expected: f32) {
+        assert!(
+            (value - expected).abs() < EPSILON,
+            "Expected approximately {}, but got {}",
+            expected,
+            value
+        );
+    }
+
+    #[test]
+    fn test_vector_angle() {
+        assert_aproximation(Vector(1.0, 0.0).rotation(), 0.0);
+        assert_aproximation(Vector(1.0, 1.0).rotation(), 45.0);
+        assert_aproximation(Vector(0.0, 1.0).rotation(), 90.0);
+        assert_aproximation(Vector(-1.0, 1.0).rotation(), 135.0);
+        assert_aproximation(Vector(-1.0, 0.0).rotation(), 180.0);
+        assert_aproximation(Vector(-1.0, -1.0).rotation(), 225.0);
+        assert_aproximation(Vector(0.0, -1.0).rotation(), 270.0);
+        assert_aproximation(Vector(1.0, -1.0).rotation(), 315.0);
+    }
+}
