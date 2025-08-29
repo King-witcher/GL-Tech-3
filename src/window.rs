@@ -10,7 +10,7 @@ use sdl2::{
     },
 };
 
-use crate::buffer::Image;
+use crate::image::Image;
 
 pub struct Window {
     buffer: Image,

@@ -1,5 +1,5 @@
 extern crate sdl2;
-mod buffer;
+mod image;
 mod window;
 
 use sdl2::sys::*;
