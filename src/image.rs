@@ -1,3 +1,4 @@
+use core::alloc;
 use std::{alloc::Layout, ptr::NonNull};
 
 pub struct Image {
@@ -46,6 +47,15 @@ impl Image {
             let mut buffer = self.buffer.as_ptr();
             buffer = buffer.add(index);
             *buffer = value;
+        }
+    }
+}
+
+impl Drop for Image {
+    fn drop(&mut self) {
+        let layout = Layout::array::<u32>((self.width * self.height) as usize).unwrap();
+        unsafe {
+            std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
         }
     }
 }
