@@ -1,33 +1,43 @@
 extern crate sdl2;
+
 mod image;
+mod sdl;
 mod window;
 
-use sdl2::sys::*;
 use window::Window;
 
-pub fn main() -> Result<(), String> {
-    let window = Window::new("GLTech 3", 800, 600, 800, 600, false);
+use crate::sdl::SDLEvent;
+
+pub fn main() {
+    let window = Window::new("GLTech 3", 800, 450, 800, 450, false);
     let image = window.image();
-    let mut color = 0u32;
+    let mut counter = 0u32;
 
     'main_loop: loop {
         for event in Window::events() {
             match event {
-                SDL_EventType::SDL_QUIT => {
+                SDLEvent::Quit(_) => {
                     break 'main_loop;
+                }
+                SDLEvent::KeyDown(e) => {
+                    println!("{:?}", e.keysym.sym);
                 }
                 _ => {}
             }
         }
 
         for i in 0..800 {
-            for j in 0..600 {
-                image.set(i, j, color / 10);
+            for j in 0..450 {
+                let color = if ((counter / 1000) % 2) == 0u32 {
+                    0xffffffffu32
+                } else {
+                    0
+                };
+                image.set(i, j, color);
             }
         }
 
-        color += 5;
+        counter += 1;
         window.update();
     }
-    Ok(())
 }

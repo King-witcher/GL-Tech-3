@@ -1,61 +1,49 @@
-use std::os::raw::c_void;
-
-use sdl2::{
-    pixels,
-    sys::{
-        SDL_CreateRenderer, SDL_CreateTexture, SDL_CreateWindow, SDL_DestroyRenderer,
-        SDL_DestroyTexture, SDL_DestroyWindow, SDL_EventType, SDL_PollEvent, SDL_Rect,
-        SDL_RenderCopy, SDL_RenderPresent, SDL_Renderer, SDL_RendererFlags, SDL_Texture,
-        SDL_UpdateTexture, SDL_WINDOWPOS_UNDEFINED_MASK, SDL_Window, SDL_WindowFlags,
-    },
-};
-
 use crate::image::Image;
+use crate::sdl::*;
 
 pub struct Window {
+    title: String,
     buffer: Image,
-    window: *mut SDL_Window,
-    renderer: *mut SDL_Renderer,
-    texture: *mut SDL_Texture,
+    window: usize,
+    renderer: usize,
+    texture: usize,
 }
 
 impl Window {
     pub fn new(title: &str, w: i32, h: i32, buf_w: i32, buf_h: i32, fullscreen: bool) -> Self {
         unsafe {
-            let title = format!("{}\0", title);
-            let title = title.as_bytes().as_ptr() as *const i8;
-
-            let mut flags = SDL_WindowFlags::SDL_WINDOW_VULKAN as u32;
+            let title = format!("{title}\0");
+            let mut flags = SDL_WINDOW_VULKAN;
             if fullscreen {
-                flags |= SDL_WindowFlags::SDL_WINDOW_FULLSCREEN as u32;
+                flags |= SDL_WINDOW_FULLSCREEN;
             }
 
             let buffer = Image::new(buf_w as u32, buf_h as u32);
 
             let window = SDL_CreateWindow(
-                title,
-                SDL_WINDOWPOS_UNDEFINED_MASK as i32,
-                SDL_WINDOWPOS_UNDEFINED_MASK as i32,
+                title.as_ptr(),
+                SDL_WINDOWPOS_UNDEFINED,
+                SDL_WINDOWPOS_UNDEFINED,
                 w,
                 h,
                 flags,
             );
 
-            let renderer = SDL_CreateRenderer(
-                window,
-                -1,
-                SDL_RendererFlags::SDL_RENDERER_ACCELERATED as u32,
-            );
+            let renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
             let texture = SDL_CreateTexture(
                 renderer,
-                pixels::PixelFormatEnum::RGBA32 as u32,
-                sdl2::render::TextureAccess::Static as i32,
+                SDLPixelFormat::RGBX8888,
+                SDLTextureAccess::Static,
                 buf_w,
                 buf_h,
             );
 
+            SDL_RenderCopy(0, 0, None, None);
+            println!("{}", get_last_error());
+
             Self {
+                title,
                 buffer,
                 window,
                 renderer,
@@ -68,16 +56,12 @@ impl Window {
         unsafe {
             SDL_UpdateTexture(
                 self.texture,
-                0 as *const SDL_Rect,
-                self.buffer.buffer.as_ptr() as *const c_void,
+                None,
+                self.buffer.buffer.as_ptr(),
                 (self.buffer.width * 4) as i32,
             );
-            SDL_RenderCopy(
-                self.renderer,
-                self.texture,
-                0 as *const SDL_Rect,
-                0 as *const SDL_Rect,
-            );
+
+            SDL_RenderCopy(self.renderer, self.texture, None, None);
             SDL_RenderPresent(self.renderer);
         }
     }
@@ -86,13 +70,22 @@ impl Window {
         &self.buffer
     }
 
+    pub fn get_mouse_shift() -> (i32, i32) {
+        let mut x = 0;
+        let mut y = 0;
+        unsafe {
+            SDL_GetRelativeMouseState(&mut x, &mut y);
+        }
+        (x, y)
+    }
+
     pub fn image_mut(&mut self) -> &mut Image {
         &mut self.buffer
     }
 
     pub fn keep_alive(&self) {}
 
-    pub fn events() -> impl Iterator<Item = SDL_EventType> {
+    pub fn events() -> impl Iterator<Item = SDLEvent> {
         EventIterator
     }
 }
@@ -110,14 +103,14 @@ impl Drop for Window {
 struct EventIterator;
 
 impl Iterator for EventIterator {
-    type Item = SDL_EventType;
+    type Item = SDLEvent;
 
     fn next(&mut self) -> Option<Self::Item> {
         unsafe {
-            let mut event = std::mem::zeroed();
+            let mut event = Default::default();
 
-            if SDL_PollEvent(&mut event) != 0 {
-                Some(std::mem::transmute(event.type_))
+            if SDL_PollEvent(&mut event) {
+                Some(event)
             } else {
                 None
             }
