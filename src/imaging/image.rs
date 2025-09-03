@@ -1,6 +1,8 @@
 use core::alloc;
 use std::{alloc::Layout, ptr::NonNull};
 
+use sdl2::libc::{self, *};
+
 pub struct Image {
     pub(crate) buffer: NonNull<u32>,
     pub(crate) width: u32,
@@ -11,8 +13,9 @@ pub struct Image {
 
 impl Image {
     pub fn new(width: u32, height: u32) -> Self {
-        let layout = Layout::array::<u32>((width * height) as usize).unwrap();
-        let ptr = unsafe { std::alloc::alloc(layout) as *mut u32 };
+        // let layout = Layout::array::<u32>((width * height) as usize).unwrap();
+        let size = width * height * 4;
+        let ptr = unsafe { malloc(size as usize) as *mut u32 };
         let buffer = NonNull::new(ptr).expect("Failed to allocate image buffer.");
 
         Self {
@@ -53,9 +56,10 @@ impl Image {
 
 impl Drop for Image {
     fn drop(&mut self) {
-        let layout = Layout::array::<u32>((self.width * self.height) as usize).unwrap();
+        // let layout = Layout::array::<u32>((self.width * self.height) as usize).unwrap();
         unsafe {
-            std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
+            // std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
+            free(self.buffer.as_ptr() as *mut c_void);
         }
     }
 }
