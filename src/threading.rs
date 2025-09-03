@@ -5,28 +5,25 @@ use std::{
     sync::RwLock,
 };
 
-pub struct GLArcInner<T: Sized> {
+pub struct MutarcInner<T: Sized> {
     data: T,
     counter: RwLock<u16>,
 }
 
-pub struct GLArc<T: Sized> {
-    inner: NonNull<GLArcInner<T>>,
+pub struct Mutarc<T: Sized> {
+    inner: NonNull<MutarcInner<T>>,
 }
 
-impl<T: Sized> GLArc<T> {
+impl<T: Sized> Mutarc<T> {
     pub fn new(data: T) -> Self {
-        let inner = GLArcInner {
+        let inner = MutarcInner {
             data,
             counter: RwLock::new(1),
         };
 
-        let layout = Layout::new::<GLArcInner<T>>();
+        let layout = Layout::new::<MutarcInner<T>>();
         unsafe {
-            let ptr = std::alloc::alloc(layout) as *mut GLArcInner<T>;
-            if ptr.is_null() {
-                std::alloc::handle_alloc_error(layout);
-            }
+            let ptr = std::alloc::alloc(layout) as *mut MutarcInner<T>;
             std::ptr::write(ptr, inner);
 
             Self {
@@ -34,18 +31,12 @@ impl<T: Sized> GLArc<T> {
             }
         }
     }
-
-    #[inline]
-    pub unsafe fn get_mutable_ref(&self) -> &mut T {
-        unsafe { &mut (*self.inner.as_ptr()).data }
-    }
 }
 
-impl<T: Sized> Clone for GLArc<T> {
+impl<T: Sized> Clone for Mutarc<T> {
     fn clone(&self) -> Self {
         let mut lock = unsafe { self.inner.as_ref().counter.write().unwrap() };
         lock.add_assign(1);
-        println!("{} instances", lock);
 
         Self {
             inner: self.inner.clone(),
@@ -53,7 +44,7 @@ impl<T: Sized> Clone for GLArc<T> {
     }
 }
 
-impl<T: Sized> Drop for GLArc<T> {
+impl<T: Sized> Drop for Mutarc<T> {
     fn drop(&mut self) {
         let mut lock = unsafe { self.inner.as_ref().counter.write().unwrap() };
         *lock -= 1;
@@ -65,22 +56,44 @@ impl<T: Sized> Drop for GLArc<T> {
                 // Properly drop the inner data first
                 std::ptr::drop_in_place(self.inner.as_ptr());
 
-                let layout = Layout::new::<GLArcInner<T>>();
+                let layout = Layout::new::<MutarcInner<T>>();
                 std::alloc::dealloc(self.inner.as_ptr() as *mut u8, layout);
             }
         }
     }
 }
 
-impl<T: Sized> Deref for GLArc<T> {
+impl<T: Sized> Deref for Mutarc<T> {
     type Target = T;
+    #[inline]
     fn deref(&self) -> &Self::Target {
         unsafe { &self.inner.as_ref().data }
     }
 }
 
-impl<T: Sized> DerefMut for GLArc<T> {
+impl<T: Sized> DerefMut for Mutarc<T> {
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { &mut self.inner.as_mut().data }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn deref() {
+        let arc = Mutarc::new(5);
+        assert_eq!(*arc, 5);
+    }
+
+    #[test]
+    fn clone() {
+        let arc1 = Mutarc::new(10);
+        let mut arc2 = arc1.clone();
+        *arc2 = 20;
+        assert_eq!(*arc1, 20);
+        assert_eq!(*arc1, *arc2);
     }
 }

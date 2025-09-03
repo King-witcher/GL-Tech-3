@@ -13,10 +13,13 @@ pub struct Image {
 
 impl Image {
     pub fn new(width: u32, height: u32) -> Self {
-        // let layout = Layout::array::<u32>((width * height) as usize).unwrap();
+        let layout = Layout::array::<u32>((width * height) as usize).unwrap();
         let size = width * height * 4;
-        let ptr = unsafe { malloc(size as usize) as *mut u32 };
-        let buffer = NonNull::new(ptr).expect("Failed to allocate image buffer.");
+
+        let buffer = unsafe {
+            let ptr = std::alloc::alloc(layout) as *mut u32;
+            NonNull::new_unchecked(ptr)
+        };
 
         Self {
             buffer,
@@ -56,10 +59,9 @@ impl Image {
 
 impl Drop for Image {
     fn drop(&mut self) {
-        // let layout = Layout::array::<u32>((self.width * self.height) as usize).unwrap();
+        let layout = Layout::array::<u32>((self.width * self.height) as usize).unwrap();
         unsafe {
-            // std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
-            free(self.buffer.as_ptr() as *mut c_void);
+            std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
         }
     }
 }
