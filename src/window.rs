@@ -1,8 +1,9 @@
-use crate::image::Image;
+use std::ffi::CString;
+
+use crate::imaging::Image;
 use crate::sdl::*;
 
 pub struct Window {
-    title: String,
     buffer: Image,
     window: usize,
     renderer: usize,
@@ -12,16 +13,16 @@ pub struct Window {
 impl Window {
     pub fn new(title: &str, w: i32, h: i32, buf_w: i32, buf_h: i32, fullscreen: bool) -> Self {
         unsafe {
-            let title = format!("{title}\0");
+            let buffer = Image::new(buf_w as u32, buf_h as u32);
+
+            let title = CString::new(title.as_bytes()).unwrap();
             let mut flags = SDL_WINDOW_VULKAN;
             if fullscreen {
                 flags |= SDL_WINDOW_FULLSCREEN;
             }
 
-            let buffer = Image::new(buf_w as u32, buf_h as u32);
-
             let window = SDL_CreateWindow(
-                title.as_ptr(),
+                title.as_ptr() as *const u8,
                 SDL_WINDOWPOS_UNDEFINED,
                 SDL_WINDOWPOS_UNDEFINED,
                 w,
@@ -39,11 +40,9 @@ impl Window {
                 buf_h,
             );
 
-            SDL_RenderCopy(0, 0, None, None);
             println!("{}", get_last_error());
 
             Self {
-                title,
                 buffer,
                 window,
                 renderer,
