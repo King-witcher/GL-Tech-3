@@ -3,7 +3,11 @@ use std::{slice, time::Instant};
 
 use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
-use crate::{imaging::Image, vector::Vector, world::Scene};
+use crate::{
+    imaging::Image,
+    vector::Vector,
+    world::{Entity, Scene},
+};
 
 pub struct Renderer {
     scene: Scene,
@@ -108,12 +112,20 @@ impl RendererState<'_> {
         let step0 = 2.0 * tan / self.image.width as f32;
         let col_height_1 = self.image.width as f32 / (2.0 * tan);
         let left_pixel = tan - step0 - 0.5;
+        let camera_dir = self.scene.camera.dir();
+        println!("Camera dir: {:?}", camera_dir);
+        let camera_left = Vector(-camera_dir.1, camera_dir.0);
+
         for col in 0..self.image.width {
-            let relative_angle =
-                f32::atan(col as f32 * step0 - left_pixel) * 180.0 / f32::consts::PI;
-            let ray_cos = f32::cos(relative_angle * f32::consts::PI / 180.0);
-            let ray_angle = self.scene.camera.rotation + relative_angle;
-            let ray_direction = Vector::from_angle(ray_angle);
+            // let relative_angle =
+            //     f32::atan(col as f32 * step0 - left_pixel) * 180.0 / f32::consts::PI;
+            // let ray_cos = f32::cos(relative_angle * f32::consts::PI / 180.0);
+            // let ray_angle = self.scene.camera.rotation + relative_angle;
+
+            let ray_direction =
+                camera_dir + camera_left * step0 * (self.image.width as f32 / 2.0 - col as f32);
+            let ray_direction = ray_direction * (1.0 / ray_direction.module());
+            // let ray_direction2 = Vector::from_angle(ray_angle);
 
             let collision = self
                 .scene
@@ -123,22 +135,28 @@ impl RendererState<'_> {
                 continue;
             };
 
-            let col_h = col_height_1 / (ray_cos * distance);
+            let col_h = col_height_1 / (ray_direction * distance * camera_dir);
             let col_start = (self.image.height as f32 - 1.0 - col_h) * 0.5;
             let col_end = (self.image.height as f32 - 1.0 + col_h) * 0.5;
 
-            let draw_col_start = self.image.height - (self.image.height as f32 - col_start) as u32; // Inclusve
-            let mut draw_col_end = self.image.height - (self.image.height as f32 - col_end) as u32; // Exclusive
+            let mut draw_col_start =
+                self.image.height as i32 - (self.image.height as f32 - col_start) as i32; // Inclusve
+            let mut draw_col_end =
+                self.image.height as i32 - (self.image.height as f32 - col_end) as i32; // Exclusive
 
-            if draw_col_end >= self.image.height {
-                draw_col_end = self.image.height;
+            if (draw_col_start < 0) {
+                draw_col_start = 0;
+            }
+
+            if draw_col_end >= self.image.height as i32 {
+                draw_col_end = self.image.height as i32;
             }
 
             // let i_col_h = 1.0 / col_h;
 
             for line in draw_col_start..draw_col_end {
                 // let vratio = (line as f32 - col_start) * i_col_h;
-                self.image.set(col, line, 0xFFFFFFFF);
+                self.image.set(col, line as u32, 0xFFFFFFFF);
             }
         }
     }
