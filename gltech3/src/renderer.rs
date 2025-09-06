@@ -1,5 +1,5 @@
 use core::f32;
-use std::{slice, time::Instant};
+use std::slice;
 
 use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
@@ -136,7 +136,7 @@ impl RendererState<'_> {
             let mut draw_col_end =
                 self.image.height as i32 - (self.image.height as f32 - col_end) as i32; // Exclusive
 
-            if (draw_col_start < 0) {
+            if draw_col_start < 0 {
                 draw_col_start = 0;
             }
 

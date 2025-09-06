@@ -1,7 +1,3 @@
-[package]
-name = "rust-folder"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-sdl2 = "0.38"
+[workspace]
+resolver = "3"
+members = ["gltech3", "program"]

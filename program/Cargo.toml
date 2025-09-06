@@ -1,0 +1,6 @@
+[package]
+name = "program"
+
+[dependencies]
+gltech3 = { path = "../gltech3" }
+sdl2 = "0.38"
