@@ -15,4 +15,20 @@ impl Scene {
             planes: Vec::new(),
         }
     }
+
+    pub(crate) fn nearest_plane(&self, origin: Vector, direction: Vector) -> Option<(&Plane, f32)> {
+        let mut nearest_distance = f32::INFINITY;
+        let mut nearest_plane = None;
+
+        for plane in &self.planes {
+            if let Some(hit) = plane.test_ray(origin, direction) {
+                if hit.distance < nearest_distance {
+                    nearest_distance = hit.distance;
+                    nearest_plane = Some(plane);
+                }
+            }
+        }
+
+        Some((nearest_plane?, nearest_distance))
+    }
 }

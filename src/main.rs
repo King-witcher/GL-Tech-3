@@ -11,9 +11,12 @@ mod world;
 use sdl2::sys::SDL_Scancode;
 use window::Window;
 
-use crate::sdl::SDLEvent;
+use crate::{renderer::RendererContext, sdl::SDLEvent, vector::Vector, world::Plane};
 
 pub fn main() {
     let mut scene = world::Scene::new();
-    renderer::run(&mut scene);
+    let plane = Plane::new(Vector(1.0, 1.0), Vector(1.0, -1.0));
+    scene.planes.push(plane);
+    let renderer = RendererContext::new(scene);
+    renderer.run();
 }
