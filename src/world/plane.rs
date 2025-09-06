@@ -1,4 +1,4 @@
-use crate::vector::Vector;
+use crate::{vector::Vector, world::Entity};
 
 pub struct Plane {
     pub start: Vector,
@@ -37,5 +37,22 @@ impl Plane {
             distance: dsttmp,
             color: 0xFFFFFFFF,
         })
+    }
+
+    #[inline]
+    pub fn end(&self) -> Vector {
+        self.start + self.direction
+    }
+}
+
+impl Entity for Plane {
+    #[inline]
+    fn pos(&self) -> Vector {
+        self.start
+    }
+
+    #[inline]
+    fn dir(&self) -> Vector {
+        self.direction
     }
 }

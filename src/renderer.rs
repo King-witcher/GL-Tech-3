@@ -87,10 +87,7 @@ impl RendererState<'_> {
                 }
             }
 
-            // Rendering code would go here
             self.draw();
-            // println!("{}", last_instant.elapsed().as_millis());
-            // last_instant = Instant::now();
 
             unsafe {
                 let slice = slice::from_raw_parts(
@@ -108,24 +105,19 @@ impl RendererState<'_> {
     }
 
     fn draw(&mut self) {
-        let tan = f32::tan(90.0 * 0.5 * f32::consts::PI / 180.0);
+        let tan = f32::tan(110.0 * 0.5 * f32::consts::PI / 180.0);
         let step0 = 2.0 * tan / self.image.width as f32;
         let col_height_1 = self.image.width as f32 / (2.0 * tan);
-        let left_pixel = tan - step0 - 0.5;
         let camera_dir = self.scene.camera.dir();
-        println!("Camera dir: {:?}", camera_dir);
         let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
         for col in 0..self.image.width {
-            // let relative_angle =
-            //     f32::atan(col as f32 * step0 - left_pixel) * 180.0 / f32::consts::PI;
-            // let ray_cos = f32::cos(relative_angle * f32::consts::PI / 180.0);
-            // let ray_angle = self.scene.camera.rotation + relative_angle;
-
-            let ray_direction =
-                camera_dir + camera_left * step0 * (self.image.width as f32 / 2.0 - col as f32);
-            let ray_direction = ray_direction * (1.0 / ray_direction.module());
-            // let ray_direction2 = Vector::from_angle(ray_angle);
+            let ray_direction = {
+                let delta = self.image.width as i32 / 2 - col as i32;
+                let mut dir = camera_dir + camera_left * step0 * delta as f32;
+                dir.modularize();
+                dir
+            };
 
             let collision = self
                 .scene

@@ -16,4 +16,17 @@ pub fn main() {
     scene.planes.push(plane);
     let renderer = Renderer::new(scene);
     renderer.start();
+
+    let vector = (1.0, 0.0);
+    vector.module();
+}
+
+trait VectorTest {
+    fn module(&self) -> f32;
+}
+
+impl VectorTest for (f32, f32) {
+    fn module(&self) -> f32 {
+        f32::sqrt(self.0 * self.0 + self.1 * self.1)
+    }
 }

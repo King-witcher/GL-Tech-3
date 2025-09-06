@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector(pub f32, pub f32);
@@ -9,14 +9,27 @@ impl Vector {
         Vector(rad.cos(), rad.sin())
     }
 
+    #[inline]
     pub fn module(&self) -> f32 {
         f32::sqrt(self.0 * self.0 + self.1 * self.1)
     }
 
+    pub fn modularize(&mut self) -> f32 {
+        let module = self.module();
+        let imodule = 1.0 / module;
+        if module != 0.0 {
+            self.0 *= imodule;
+            self.1 *= imodule;
+        }
+        module
+    }
+
+    #[inline]
     pub fn dot_product(&self, other: &Vector) -> f32 {
         self.0 * other.0 + self.1 * other.1
     }
 
+    #[inline]
     pub fn complex_product(&self, other: &Vector) -> Vector {
         Vector(
             self.0 * other.0 - self.1 * other.1,
@@ -24,6 +37,7 @@ impl Vector {
         )
     }
 
+    #[inline]
     pub fn rotation(&self) -> f32 {
         if self.0 == 0.0 && self.1 == 0.0 {
             return 0.0;
@@ -44,6 +58,7 @@ impl Vector {
 impl Add for Vector {
     type Output = Vector;
 
+    #[inline]
     fn add(self, other: Vector) -> Vector {
         Vector(self.0 + other.0, self.1 + other.1)
     }
@@ -52,6 +67,7 @@ impl Add for Vector {
 impl Sub for Vector {
     type Output = Vector;
 
+    #[inline]
     fn sub(self, other: Vector) -> Vector {
         Vector(self.0 - other.0, self.1 - other.1)
     }
@@ -60,6 +76,7 @@ impl Sub for Vector {
 impl Mul<f32> for Vector {
     type Output = Vector;
 
+    #[inline]
     fn mul(self, scalar: f32) -> Vector {
         Vector(self.0 * scalar, self.1 * scalar)
     }
@@ -68,8 +85,18 @@ impl Mul<f32> for Vector {
 impl Mul for Vector {
     type Output = f32;
 
+    #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
-        self.0 * rhs.0 + self.1 * rhs.1
+        Vector::dot_product(&self, &rhs)
+    }
+}
+
+impl Div<f32> for Vector {
+    type Output = Vector;
+
+    #[inline]
+    fn div(self, scalar: f32) -> Vector {
+        Vector(self.0 / scalar, self.1 / scalar)
     }
 }
 
