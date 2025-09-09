@@ -30,6 +30,16 @@ impl Vector {
     }
 
     #[inline]
+    pub fn x(&self) -> f32 {
+        self.0
+    }
+
+    #[inline]
+    pub fn y(&self) -> f32 {
+        self.1
+    }
+
+    #[inline]
     pub fn complex_product(&self, other: &Vector) -> Vector {
         Vector(
             self.0 * other.0 - self.1 * other.1,
@@ -52,6 +62,15 @@ impl Vector {
         let length = self.module();
         self.0 = length * angle.to_radians().cos();
         self.1 = length * angle.to_radians().sin();
+    }
+}
+
+// Constants
+
+impl Vector {
+    #[inline]
+    pub fn forward() -> Vector {
+        Vector(1.0, 0.0)
     }
 }
 
@@ -100,12 +119,12 @@ impl Div<f32> for Vector {
     }
 }
 
-const ZERO: Vector = Vector(0.0, 0.0);
-const IDENTITY: Vector = Vector(1.0, 1.0);
-const FORWARD: Vector = Vector(0.0, 1.0);
-const LEFT: Vector = Vector(-1.0, 0.0);
-const RIGHT: Vector = Vector(1.0, 0.0);
-const BACK: Vector = Vector(0.0, -1.0);
+pub const ZERO: Vector = Vector(0.0, 0.0);
+pub const IDENTITY: Vector = Vector(1.0, 1.0);
+pub const FORWARD: Vector = Vector(0.0, 1.0);
+pub const LEFT: Vector = Vector(-1.0, 0.0);
+pub const RIGHT: Vector = Vector(1.0, 0.0);
+pub const BACK: Vector = Vector(0.0, -1.0);
 
 const TO_RAD: f32 = std::f32::consts::PI / 180.0;
 const TO_DEG: f32 = 180.0 / std::f32::consts::PI;

@@ -108,7 +108,7 @@ impl RendererState<'_> {
         let tan = f32::tan(110.0 * 0.5 * f32::consts::PI / 180.0);
         let step0 = 2.0 * tan / self.image.width as f32;
         let col_height_1 = self.image.width as f32 / (2.0 * tan);
-        let camera_dir = self.scene.camera.dir();
+        let camera_dir = self.scene.camera.transform();
         let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
         for col in 0..self.image.width {

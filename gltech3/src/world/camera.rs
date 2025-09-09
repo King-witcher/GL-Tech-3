@@ -12,7 +12,7 @@ impl Entity for Camera {
     }
 
     #[inline]
-    fn dir(&self) -> Vector {
+    fn transform(&self) -> Vector {
         Vector::from_angle(self.rotation)
     }
 }

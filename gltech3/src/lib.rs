@@ -1,4 +1,5 @@
 pub mod imaging;
+pub mod mutarc;
 pub mod renderer;
 pub mod sdl;
 pub mod vector;

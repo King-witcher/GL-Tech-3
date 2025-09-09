@@ -1,6 +1,12 @@
-use crate::{vector::Vector, world::Entity};
+use crate::{
+    vector::Vector,
+    world::{Entity, EntityNode},
+};
+
+pub(crate) struct PlaneInner {}
 
 pub struct Plane {
+    // pub(crate) inner: Box<PlaneInner>,
     pub start: Vector,
     pub direction: Vector,
 }
@@ -52,7 +58,14 @@ impl Entity for Plane {
     }
 
     #[inline]
-    fn dir(&self) -> Vector {
+    fn transform(&self) -> Vector {
         self.direction
+    }
+}
+
+impl From<Plane> for EntityNode {
+    #[inline]
+    fn from(plane: Plane) -> Self {
+        EntityNode::from_plane(plane)
     }
 }
