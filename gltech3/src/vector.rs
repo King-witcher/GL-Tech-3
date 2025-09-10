@@ -26,7 +26,7 @@ impl Vector {
 
     #[inline]
     pub fn dot_product(&self, other: &Vector) -> f32 {
-        self.0 * other.0 + self.1 * other.1
+        self.x() * other.x() + self.y() * other.y()
     }
 
     #[inline]
@@ -40,21 +40,21 @@ impl Vector {
     }
 
     #[inline]
-    pub fn complex_product(&self, other: &Vector) -> Vector {
+    pub fn transform(&self, by: &Vector) -> Vector {
         Vector(
-            self.0 * other.0 - self.1 * other.1,
-            self.0 * other.1 + self.1 * other.0,
+            self.x() * by.x() - self.y() * by.y(),
+            self.x() * by.y() + self.y() * by.x(),
         )
     }
 
     #[inline]
     pub fn rotation(&self) -> f32 {
-        if self.0 == 0.0 && self.1 == 0.0 {
+        if self.x() == 0.0 && self.y() == 0.0 {
             return 0.0;
         }
 
-        let temp = TO_DEG * f32::acos(self.0 / self.module());
-        if self.1 >= 0.0 { temp } else { 360.0 - temp }
+        let temp = TO_DEG * f32::acos(self.x() / self.module());
+        if self.y() >= 0.0 { temp } else { 360.0 - temp }
     }
 
     // TODO: Optimize
