@@ -1,7 +1,4 @@
-use std::{
-    fmt::Display,
-    ops::{Add, Div, Mul, Sub},
-};
+use std::{fmt::Display, ops::*};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector(pub f32, pub f32);
@@ -86,6 +83,14 @@ impl Add for Vector {
     }
 }
 
+impl AddAssign for Vector {
+    #[inline]
+    fn add_assign(&mut self, other: Vector) {
+        self.0 += other.0;
+        self.1 += other.1;
+    }
+}
+
 impl Sub for Vector {
     type Output = Vector;
 
@@ -95,12 +100,28 @@ impl Sub for Vector {
     }
 }
 
+impl SubAssign for Vector {
+    #[inline]
+    fn sub_assign(&mut self, other: Vector) {
+        self.0 -= other.0;
+        self.1 -= other.1;
+    }
+}
+
 impl Mul<f32> for Vector {
     type Output = Vector;
 
     #[inline]
     fn mul(self, scalar: f32) -> Vector {
         Vector(self.0 * scalar, self.1 * scalar)
+    }
+}
+
+impl MulAssign<f32> for Vector {
+    #[inline]
+    fn mul_assign(&mut self, scalar: f32) {
+        self.0 *= scalar;
+        self.1 *= scalar;
     }
 }
 
@@ -118,7 +139,17 @@ impl Div<f32> for Vector {
 
     #[inline]
     fn div(self, scalar: f32) -> Vector {
-        Vector(self.0 / scalar, self.1 / scalar)
+        let i_scalar = 1.0 / scalar;
+        Vector(self.0 * i_scalar, self.1 * i_scalar)
+    }
+}
+
+impl DivAssign<f32> for Vector {
+    #[inline]
+    fn div_assign(&mut self, scalar: f32) {
+        let i_scalar = 1.0 / scalar;
+        self.0 *= i_scalar;
+        self.1 *= i_scalar;
     }
 }
 
