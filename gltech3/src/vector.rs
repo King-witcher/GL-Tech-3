@@ -1,4 +1,7 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::{
+    fmt::Display,
+    ops::{Add, Div, Mul, Sub},
+};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Vector(pub f32, pub f32);
@@ -154,5 +157,11 @@ mod tests {
         assert_aproximation(Vector(-1.0, -1.0).rotation(), 225.0);
         assert_aproximation(Vector(0.0, -1.0).rotation(), 270.0);
         assert_aproximation(Vector(1.0, -1.0).rotation(), 315.0);
+    }
+}
+
+impl Display for Vector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.0, self.1)
     }
 }

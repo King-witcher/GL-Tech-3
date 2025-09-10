@@ -1,3 +1,4 @@
+use crate::scripting::script::Script;
 use crate::{vector::Vector, world::Plane};
 
 pub struct EntityNode {
@@ -8,10 +9,12 @@ pub struct EntityNode {
     // The Scene will hold references to the planes for rendering and collision detection.
     pub(crate) planes: Vec<*mut Plane>,
     pub(crate) _children: Vec<*mut EntityNode>,
+    pub(crate) scripts: Vec<Box<dyn Script>>,
 }
 
 pub trait Entity {
     fn pos(&self) -> Vector;
+    fn r#move(&mut self, delta: Vector);
     fn transform(&self) -> Vector;
 }
 
@@ -22,6 +25,7 @@ impl EntityNode {
             _transform: Vector::forward(),
             planes: Vec::new(),
             _children: Vec::new(),
+            scripts: Vec::new(),
         }
     }
 
@@ -37,7 +41,12 @@ impl EntityNode {
             _transform: transform,
             planes: vec![ptr],
             _children: Vec::new(),
+            scripts: Vec::new(),
         }
+    }
+
+    pub fn add_script(&mut self, script: Box<dyn Script>) {
+        self.scripts.push(script);
     }
 
     pub fn add_plane(&mut self, plane: Plane) {
@@ -70,6 +79,16 @@ impl Entity for EntityNode {
     #[inline]
     fn pos(&self) -> Vector {
         self.position
+    }
+
+    fn r#move(&mut self, delta: Vector) {
+        self.position = self.position + delta;
+        for &plane_ptr in &self.planes {
+            unsafe {
+                let plane = plane_ptr.as_mut().unwrap();
+                plane.start = plane.start + delta;
+            }
+        }
     }
 
     #[inline]

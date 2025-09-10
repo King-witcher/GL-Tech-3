@@ -5,8 +5,9 @@ use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
 use crate::{
     imaging::Image,
+    scripting::script::UpdateContext,
     vector::Vector,
-    world::{Entity, Scene},
+    world::{Entity, EntityNode, Plane, Scene},
 };
 
 pub struct Renderer {
@@ -88,6 +89,7 @@ impl RendererState<'_> {
             }
 
             self.draw();
+            self.update();
 
             unsafe {
                 let slice = slice::from_raw_parts(
@@ -104,7 +106,25 @@ impl RendererState<'_> {
         }
     }
 
+    fn update(&mut self) {
+        for entity in &mut self.scene.entities {
+            let ptr = entity as *mut EntityNode;
+            for script in &mut entity.scripts {
+                unsafe {
+                    script.update(&mut UpdateContext { entity: &mut *ptr });
+                }
+            }
+        }
+    }
+
     fn draw(&mut self) {
+        unsafe {
+            std::ptr::write_bytes(
+                self.image.buffer.as_ptr(),
+                0,
+                (self.image.width * self.image.height) as usize,
+            );
+        }
         let tan = f32::tan(110.0 * 0.5 * f32::consts::PI / 180.0);
         let step0 = 2.0 * tan / self.image.width as f32;
         let col_height_1 = self.image.width as f32 / (2.0 * tan);
@@ -121,7 +141,7 @@ impl RendererState<'_> {
 
             let collision = self
                 .scene
-                .nearest_plane(self.scene.camera.position, ray_direction);
+                .nearest_plane(self.scene.camera.pos(), ray_direction);
 
             let Some((plane, distance)) = collision else {
                 continue;
@@ -147,7 +167,6 @@ impl RendererState<'_> {
             // let i_col_h = 1.0 / col_h;
 
             for line in draw_col_start..draw_col_end {
-                // let vratio = (line as f32 - col_start) * i_col_h;
                 self.image.set(col, line as u32, 0xFFFFFFFF);
             }
         }

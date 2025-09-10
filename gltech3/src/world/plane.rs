@@ -57,6 +57,10 @@ impl Entity for Plane {
         self.start
     }
 
+    fn r#move(&mut self, delta: Vector) {
+        self.start = self.start + delta;
+    }
+
     #[inline]
     fn transform(&self) -> Vector {
         self.direction
