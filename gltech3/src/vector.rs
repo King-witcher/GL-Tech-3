@@ -153,6 +153,15 @@ impl DivAssign<f32> for Vector {
     }
 }
 
+impl Neg for Vector {
+    type Output = Vector;
+
+    #[inline]
+    fn neg(self) -> Vector {
+        Vector(-self.0, -self.1)
+    }
+}
+
 pub const ZERO: Vector = Vector(0.0, 0.0);
 pub const IDENTITY: Vector = Vector(1.0, 1.0);
 pub const FORWARD: Vector = Vector(0.0, 1.0);
