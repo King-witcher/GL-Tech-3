@@ -2,8 +2,8 @@ use crate::scripting::script::Script;
 use crate::{vector::Vector, world::Plane};
 
 pub struct EntityNode {
-    position: Vector,
-    _transform: Vector,
+    pos: Vector,
+    dir: Vector,
 
     // One entity owns its planes and children and is responsible for dropping them when it goes out of scope.
     // The Scene will hold references to the planes for rendering and collision detection.
@@ -12,17 +12,51 @@ pub struct EntityNode {
     pub(crate) scripts: Vec<Box<dyn Script>>,
 }
 
-pub trait Entity {
+pub trait SpatialEntity {
     fn pos(&self) -> Vector;
-    fn r#move(&mut self, delta: Vector);
-    fn transform(&self) -> Vector;
+
+    fn set_pos(&mut self, pos: Vector);
+
+    fn dir(&self) -> Vector;
+
+    fn set_dir(&mut self, dir: Vector);
+
+    #[inline]
+    fn angle(&self) -> f32 {
+        self.dir().angle()
+    }
+
+    #[inline]
+    fn set_angle(&mut self, angle: f32) {
+        let trans = Vector::from_angle(angle);
+        let dir = self.dir();
+        self.set_dir(dir.cmul(trans));
+    }
+
+    #[inline]
+    fn translate(&mut self, delta: Vector) {
+        self.set_pos(self.pos() + delta);
+    }
+
+    #[inline]
+    fn transform(&mut self, transformation: Vector) {
+        let dir = self.dir();
+        self.set_dir(dir.cmul(transformation));
+    }
+
+    #[inline]
+    fn rotate(&mut self, angle: f32) {
+        let trans = Vector::from_angle(angle);
+        let dir = self.dir();
+        self.set_dir(dir.cmul(trans));
+    }
 }
 
 impl EntityNode {
     pub fn new(position: Vector) -> Self {
         Self {
-            position,
-            _transform: Vector::forward(),
+            pos: position,
+            dir: Vector::forward(),
             planes: Vec::new(),
             _children: Vec::new(),
             scripts: Vec::new(),
@@ -32,13 +66,13 @@ impl EntityNode {
     /// Creates a new EntityNode from a Plane.
     /// The position of the EntityNode is set to the center of the Plane.
     pub fn from_plane(plane: Plane) -> Self {
-        let position = plane.start + plane.direction * 0.5;
-        let transform = plane.transform();
+        let pos = plane.start + plane.direction * 0.5;
+        let dir = plane.dir();
         let ptr = Box::into_raw(Box::new(plane));
 
         Self {
-            position,
-            _transform: transform,
+            pos,
+            dir,
             planes: vec![ptr],
             _children: Vec::new(),
             scripts: Vec::new(),
@@ -75,24 +109,50 @@ impl Drop for EntityNode {
     }
 }
 
-impl Entity for EntityNode {
+impl SpatialEntity for EntityNode {
     #[inline]
     fn pos(&self) -> Vector {
-        self.position
+        self.pos
     }
 
-    fn r#move(&mut self, delta: Vector) {
-        self.position = self.position + delta;
+    fn set_pos(&mut self, pos: Vector) {
+        let delta = pos - self.pos;
         for &plane_ptr in &self.planes {
             unsafe {
                 let plane = plane_ptr.as_mut().unwrap();
                 plane.start = plane.start + delta;
             }
         }
+        self.pos = pos
     }
 
-    #[inline]
-    fn transform(&self) -> Vector {
-        self._transform
+    fn dir(&self) -> Vector {
+        self.dir
+    }
+
+    fn set_dir(&mut self, value: Vector) {
+        let factor = value.cdiv(self.dir);
+        println!("Factor: {:?}", factor);
+        for &plane_ptr in &self.planes {
+            unsafe {
+                let plane = plane_ptr.as_mut().unwrap();
+                plane.direction = plane.direction.cmul(factor);
+            }
+        }
+        self.dir = value;
+    }
+
+    fn angle(&self) -> f32 {
+        self.dir.angle()
+    }
+
+    fn translate(&mut self, delta: Vector) {
+        self.pos = self.pos + delta;
+        for &plane_ptr in &self.planes {
+            unsafe {
+                let plane = plane_ptr.as_mut().unwrap();
+                plane.start = plane.start + delta;
+            }
+        }
     }
 }

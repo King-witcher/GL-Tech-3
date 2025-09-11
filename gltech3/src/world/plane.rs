@@ -1,6 +1,6 @@
 use crate::{
     vector::Vector,
-    world::{Entity, EntityNode},
+    world::{EntityNode, SpatialEntity},
 };
 
 pub(crate) struct PlaneInner {}
@@ -51,19 +51,35 @@ impl Plane {
     }
 }
 
-impl Entity for Plane {
+impl SpatialEntity for Plane {
     #[inline]
     fn pos(&self) -> Vector {
         self.start
     }
 
-    fn r#move(&mut self, delta: Vector) {
+    #[inline]
+    fn set_pos(&mut self, pos: Vector) {
+        self.start = pos;
+    }
+
+    #[inline]
+    fn dir(&self) -> Vector {
+        self.direction
+    }
+
+    #[inline]
+    fn set_dir(&mut self, dir: Vector) {
+        self.direction = dir;
+    }
+
+    #[inline]
+    fn translate(&mut self, delta: Vector) {
         self.start = self.start + delta;
     }
 
     #[inline]
-    fn transform(&self) -> Vector {
-        self.direction
+    fn transform(&mut self, by: Vector) {
+        self.direction = self.direction.cmul(by);
     }
 }
 
@@ -71,5 +87,16 @@ impl From<Plane> for EntityNode {
     #[inline]
     fn from(plane: Plane) -> Self {
         EntityNode::from_plane(plane)
+    }
+}
+
+impl std::fmt::Display for Plane {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Plane <{:?}, {:?}>",
+            self.start,
+            self.start + self.direction
+        )
     }
 }

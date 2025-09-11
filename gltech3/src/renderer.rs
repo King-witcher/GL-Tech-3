@@ -7,10 +7,11 @@ use crate::{
     imaging::Image,
     scripting::script::UpdateContext,
     vector::Vector,
-    world::{Entity, EntityNode, Plane, Scene},
+    world::{EntityNode, Scene, SpatialEntity},
 };
 
-pub struct Renderer {
+pub struct RendererBuilder {
+    fullscreen: bool,
     scene: Scene,
     width: u32,
     height: u32,
@@ -25,14 +26,30 @@ struct RendererState<'a> {
     sdl_texture: sdl2::render::Texture<'a>,
 }
 
-impl Renderer {
+impl RendererBuilder {
     pub fn new(scene: Scene) -> Self {
         Self {
+            fullscreen: false,
             scene,
             width: 800,
             height: 450,
             title: "GLTech 3".into(),
         }
+    }
+
+    pub fn fullscreen(mut self) -> Self {
+        self.fullscreen = true;
+        self
+    }
+
+    pub fn width(mut self, width: u32) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn height(mut self, height: u32) -> Self {
+        self.height = height;
+        self
     }
 
     pub fn start(self) {
@@ -128,7 +145,7 @@ impl RendererState<'_> {
         let tan = f32::tan(110.0 * 0.5 * f32::consts::PI / 180.0);
         let step0 = 2.0 * tan / self.image.width as f32;
         let col_height_1 = self.image.width as f32 / (2.0 * tan);
-        let camera_dir = self.scene.camera.transform();
+        let camera_dir = self.scene.camera.dir();
         let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
         for col in 0..self.image.width {
@@ -147,7 +164,9 @@ impl RendererState<'_> {
                 continue;
             };
 
-            let col_h = col_height_1 / (ray_direction * distance * camera_dir);
+            // println!("Plane: {}", plane.dir().module());
+
+            let col_h = col_height_1 / (ray_direction.dot_product(&camera_dir) * distance);
             let col_start = (self.image.height as f32 - 1.0 - col_h) * 0.5;
             let col_end = (self.image.height as f32 - 1.0 + col_h) * 0.5;
 

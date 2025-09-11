@@ -11,7 +11,7 @@ impl Vector {
 
     #[inline]
     pub fn module(&self) -> f32 {
-        f32::sqrt(self.0 * self.0 + self.1 * self.1)
+        f32::sqrt(self.x() * self.x() + self.y() * self.y())
     }
 
     pub fn modularize(&mut self) -> f32 {
@@ -40,7 +40,7 @@ impl Vector {
     }
 
     #[inline]
-    pub fn transform(&self, by: &Vector) -> Vector {
+    pub fn cmul(self, by: Vector) -> Vector {
         Vector(
             self.x() * by.x() - self.y() * by.y(),
             self.x() * by.y() + self.y() * by.x(),
@@ -48,7 +48,16 @@ impl Vector {
     }
 
     #[inline]
-    pub fn rotation(&self) -> f32 {
+    pub fn cdiv(self, by: Vector) -> Vector {
+        let i_squares_sum = 1.0 / (by.x() * by.x() + by.y() * by.y());
+        Vector(
+            (self.x() * by.x() + self.y() * by.y()) * i_squares_sum,
+            (self.y() * by.x() - self.x() * by.y()) * i_squares_sum,
+        )
+    }
+
+    #[inline]
+    pub fn angle(self) -> f32 {
         if self.x() == 0.0 && self.y() == 0.0 {
             return 0.0;
         }
@@ -126,13 +135,22 @@ impl MulAssign<f32> for Vector {
 }
 
 impl Mul for Vector {
-    type Output = f32;
+    type Output = Vector;
 
     #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
-        Vector::dot_product(&self, &rhs)
+        self.cmul(rhs)
     }
 }
+
+// impl Mul for Vector {
+//     type Output = f32;
+
+//     #[inline]
+//     fn mul(self, rhs: Self) -> Self::Output {
+//         Vector::dot_product(&self, &rhs)
+//     }
+// }
 
 impl Div<f32> for Vector {
     type Output = Vector;
@@ -172,6 +190,12 @@ pub const BACK: Vector = Vector(0.0, -1.0);
 const TO_RAD: f32 = std::f32::consts::PI / 180.0;
 const TO_DEG: f32 = 180.0 / std::f32::consts::PI;
 
+impl Display for Vector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.0, self.1)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -188,20 +212,44 @@ mod tests {
     }
 
     #[test]
-    fn test_vector_angle() {
-        assert_aproximation(Vector(1.0, 0.0).rotation(), 0.0);
-        assert_aproximation(Vector(1.0, 1.0).rotation(), 45.0);
-        assert_aproximation(Vector(0.0, 1.0).rotation(), 90.0);
-        assert_aproximation(Vector(-1.0, 1.0).rotation(), 135.0);
-        assert_aproximation(Vector(-1.0, 0.0).rotation(), 180.0);
-        assert_aproximation(Vector(-1.0, -1.0).rotation(), 225.0);
-        assert_aproximation(Vector(0.0, -1.0).rotation(), 270.0);
-        assert_aproximation(Vector(1.0, -1.0).rotation(), 315.0);
+    fn angle() {
+        assert_aproximation(Vector(1.0, 0.0).angle(), 0.0);
+        assert_aproximation(Vector(1.0, 1.0).angle(), 45.0);
+        assert_aproximation(Vector(0.0, 1.0).angle(), 90.0);
+        assert_aproximation(Vector(-1.0, 1.0).angle(), 135.0);
+        assert_aproximation(Vector(-1.0, 0.0).angle(), 180.0);
+        assert_aproximation(Vector(-1.0, -1.0).angle(), 225.0);
+        assert_aproximation(Vector(0.0, -1.0).angle(), 270.0);
+        assert_aproximation(Vector(1.0, -1.0).angle(), 315.0);
     }
-}
 
-impl Display for Vector {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.0, self.1)
+    #[test]
+    fn modularize() {
+        let mut v = Vector(3.0, 4.0);
+        let module = v.modularize();
+        assert_aproximation(module, 5.0);
+        assert_aproximation(v.module(), 1.0);
+    }
+
+    #[test]
+    fn cmul() {
+        let first = Vector(rand::random(), rand::random());
+        let second = Vector(rand::random(), rand::random());
+
+        let result = first.cmul(second);
+
+        assert_aproximation(result.module(), first.module() * second.module());
+        assert_aproximation(result.angle(), first.angle() + second.angle());
+    }
+
+    #[test]
+    fn cdiv() {
+        let first = Vector(rand::random(), rand::random());
+        let second = Vector(rand::random(), rand::random());
+
+        let result = first.cdiv(second);
+
+        assert_aproximation(result.module(), first.module() / second.module());
+        assert_aproximation(result.angle(), first.angle() - second.angle());
     }
 }
