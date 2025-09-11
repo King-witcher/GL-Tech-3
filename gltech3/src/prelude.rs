@@ -1,2 +1,2 @@
-pub use crate::vector::*;
+pub use crate::core::*;
 pub use crate::world::Scene;

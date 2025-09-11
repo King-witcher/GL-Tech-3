@@ -1,14 +1,13 @@
 use core::f32;
 use std::slice;
 
-use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
-
+use crate::prelude::*;
 use crate::{
     imaging::Image,
     scripting::script::UpdateContext,
-    vector::Vector,
     world::{Entity, Scene, Spatial},
 };
+use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
 pub struct RendererBuilder {
     fullscreen: bool,

@@ -1,7 +1,6 @@
-use crate::{
-    vector::Vector,
-    world::{Entity, Spatial},
-};
+use crate::prelude::*;
+
+use crate::world::{Entity, Spatial};
 
 pub struct Plane {
     // pub(crate) inner: Box<PlaneInner>,
@@ -10,8 +9,8 @@ pub struct Plane {
 }
 
 pub(crate) struct RayHit {
-    pub distance: f32,
-    pub color: u32,
+    pub r: f32,
+    pub s: f32,
 }
 
 impl Plane {
@@ -20,16 +19,18 @@ impl Plane {
     }
 
     pub(crate) fn test_ray(&self, origin: Vector, direction: Vector) -> Option<RayHit> {
-        let det = direction.0 * self.direction.1 - direction.1 * self.direction.0;
+        let det = direction.x() * self.direction.y() - direction.y() * self.direction.x();
         let idet = 1.0 / det;
+
+        // Parallel lines
         if det == 0.0 {
             return None;
         }
 
-        let spldet =
-            direction.0 * (origin.1 - self.start.1) - direction.1 * (origin.0 - self.start.0);
-        let dstdet = self.direction.0 * (origin.1 - self.start.1)
-            - self.direction.1 * (origin.0 - self.start.0);
+        let spldet = direction.x() * (origin.y() - self.start.y())
+            - direction.y() * (origin.x() - self.start.x());
+        let dstdet = self.direction.x() * (origin.y() - self.start.y())
+            - self.direction.y() * (origin.x() - self.start.x());
         let spltmp = spldet * idet;
         let dsttmp = dstdet * idet;
 
@@ -37,10 +38,7 @@ impl Plane {
             return None;
         }
 
-        Some(RayHit {
-            distance: dsttmp,
-            color: 0xFFFFFFFF,
-        })
+        Some(RayHit { r: dsttmp, s: 0.5 })
     }
 
     #[inline]

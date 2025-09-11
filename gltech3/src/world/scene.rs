@@ -1,4 +1,4 @@
-use crate::{vector::Vector, world::*};
+use crate::{Vector, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
 // like planes are owned by entities and the Scene only holds references to them for rendering and collision detection.
@@ -29,8 +29,8 @@ impl Scene {
 
         for plane in self.planes.iter().map(|&p| unsafe { &*p }) {
             if let Some(hit) = plane.test_ray(origin, direction) {
-                if hit.distance < nearest_distance {
-                    nearest_distance = hit.distance;
+                if hit.r < nearest_distance {
+                    nearest_distance = hit.r;
                     nearest_plane = Some(plane);
                 }
             }
