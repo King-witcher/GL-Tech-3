@@ -2,13 +2,13 @@ use gltech3::{
     prelude::*,
     renderer::RendererBuilder,
     scripting::{Script, UpdateContext},
-    world::{EntityNode, Plane, SpatialEntity},
+    world::{Entity, Plane, Spatial},
 };
 
 pub fn main() {
     let mut scene = Scene::new();
-    let plane = Plane::new(Vector(1.0, 1.0), Vector(1.0, 0.0));
-    let mut plane: EntityNode = plane.into();
+    let plane = Plane::new(Vector(2.0, 0.0), Vector(1.0, 0.0));
+    let mut plane: Entity = plane.into();
     plane.add_script(Box::new(RotateScript));
     scene.add_node(plane);
     let renderer = RendererBuilder::new(scene)

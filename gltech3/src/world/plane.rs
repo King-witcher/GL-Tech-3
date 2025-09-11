@@ -1,9 +1,7 @@
 use crate::{
     vector::Vector,
-    world::{EntityNode, SpatialEntity},
+    world::{Entity, Spatial},
 };
-
-pub(crate) struct PlaneInner {}
 
 pub struct Plane {
     // pub(crate) inner: Box<PlaneInner>,
@@ -51,7 +49,7 @@ impl Plane {
     }
 }
 
-impl SpatialEntity for Plane {
+impl Spatial for Plane {
     #[inline]
     fn pos(&self) -> Vector {
         self.start
@@ -83,10 +81,10 @@ impl SpatialEntity for Plane {
     }
 }
 
-impl From<Plane> for EntityNode {
+impl From<Plane> for Entity {
     #[inline]
     fn from(plane: Plane) -> Self {
-        EntityNode::from_plane(plane)
+        Entity::from_plane(plane)
     }
 }
 

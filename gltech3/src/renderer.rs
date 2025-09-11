@@ -7,7 +7,7 @@ use crate::{
     imaging::Image,
     scripting::script::UpdateContext,
     vector::Vector,
-    world::{EntityNode, Scene, SpatialEntity},
+    world::{Entity, Scene, Spatial},
 };
 
 pub struct RendererBuilder {
@@ -125,7 +125,7 @@ impl RendererState<'_> {
 
     fn update(&mut self) {
         for entity in &mut self.scene.entities {
-            let ptr = entity as *mut EntityNode;
+            let ptr = entity as *mut Entity;
             for script in &mut entity.scripts {
                 unsafe {
                     script.update(&mut UpdateContext { entity: &mut *ptr });

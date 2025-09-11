@@ -1,8 +1,8 @@
-use crate::world::EntityNode;
+use crate::world::Entity;
 
 pub struct StartContext;
 pub struct UpdateContext<'a> {
-    pub entity: &'a mut EntityNode,
+    pub entity: &'a mut Entity,
 }
 pub struct EndContext;
 

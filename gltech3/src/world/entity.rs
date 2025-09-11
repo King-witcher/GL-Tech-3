@@ -1,58 +1,19 @@
 use crate::scripting::script::Script;
+use crate::world::Spatial;
 use crate::{vector::Vector, world::Plane};
 
-pub struct EntityNode {
+pub struct Entity {
     pos: Vector,
     dir: Vector,
 
     // One entity owns its planes and children and is responsible for dropping them when it goes out of scope.
     // The Scene will hold references to the planes for rendering and collision detection.
     pub(crate) planes: Vec<*mut Plane>,
-    pub(crate) _children: Vec<*mut EntityNode>,
+    pub(crate) _children: Vec<*mut Entity>,
     pub(crate) scripts: Vec<Box<dyn Script>>,
 }
 
-pub trait SpatialEntity {
-    fn pos(&self) -> Vector;
-
-    fn set_pos(&mut self, pos: Vector);
-
-    fn dir(&self) -> Vector;
-
-    fn set_dir(&mut self, dir: Vector);
-
-    #[inline]
-    fn angle(&self) -> f32 {
-        self.dir().angle()
-    }
-
-    #[inline]
-    fn set_angle(&mut self, angle: f32) {
-        let trans = Vector::from_angle(angle);
-        let dir = self.dir();
-        self.set_dir(dir.cmul(trans));
-    }
-
-    #[inline]
-    fn translate(&mut self, delta: Vector) {
-        self.set_pos(self.pos() + delta);
-    }
-
-    #[inline]
-    fn transform(&mut self, transformation: Vector) {
-        let dir = self.dir();
-        self.set_dir(dir.cmul(transformation));
-    }
-
-    #[inline]
-    fn rotate(&mut self, angle: f32) {
-        let trans = Vector::from_angle(angle);
-        let dir = self.dir();
-        self.set_dir(dir.cmul(trans));
-    }
-}
-
-impl EntityNode {
+impl Entity {
     pub fn new(position: Vector) -> Self {
         Self {
             pos: position,
@@ -88,12 +49,12 @@ impl EntityNode {
         self.planes.push(ptr);
     }
 
-    pub fn add_child(&mut self, _child: EntityNode) {
+    pub fn add_child(&mut self, _child: Entity) {
         todo!()
     }
 }
 
-impl Drop for EntityNode {
+impl Drop for Entity {
     fn drop(&mut self) {
         for &plane_ptr in &self.planes {
             unsafe {
@@ -109,7 +70,7 @@ impl Drop for EntityNode {
     }
 }
 
-impl SpatialEntity for EntityNode {
+impl Spatial for Entity {
     #[inline]
     fn pos(&self) -> Vector {
         self.pos
@@ -155,4 +116,9 @@ impl SpatialEntity for EntityNode {
             }
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
 }
