@@ -1,32 +1,32 @@
 use core::f32;
 use std::slice;
 
-use crate::prelude::*;
 use crate::{
     imaging::Image,
     scripting::script::UpdateContext,
     world::{Entity, Scene},
 };
+use crate::{prelude::*, sdl};
 use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
-pub struct RendererBuilder {
+pub struct RendererBuilder<'a> {
     fullscreen: bool,
-    scene: Scene,
+    scene: Scene<'a>,
     width: u32,
     height: u32,
     title: String,
 }
 
-struct RendererState<'a> {
+struct RendererState<'a, 'b> {
     canvas: Canvas<Window>,
     image: Image,
     event_pump: EventPump,
-    scene: Scene,
-    sdl_texture: sdl2::render::Texture<'a>,
+    scene: Scene<'a>,
+    sdl_texture: sdl2::render::Texture<'b>,
 }
 
-impl RendererBuilder {
-    pub fn new(scene: Scene) -> Self {
+impl<'a> RendererBuilder<'a> {
+    pub fn new(scene: Scene<'a>) -> Self {
         Self {
             fullscreen: false,
             scene,
@@ -64,14 +64,13 @@ impl RendererBuilder {
 
         let canvas = window.into_canvas().present_vsync().build().unwrap();
         let texture_creator = canvas.texture_creator();
-        let sdl_texture = texture_creator
-            .create_texture(
-                PixelFormatEnum::RGBA8888,
-                sdl2::render::TextureAccess::Static,
-                self.width,
-                self.height,
-            )
-            .unwrap();
+        let sdl_texture = texture_creator.create_texture(
+            PixelFormatEnum::RGBA8888,
+            sdl2::render::TextureAccess::Static,
+            self.width,
+            self.height,
+        );
+        let sdl_texture = sdl_texture.unwrap();
 
         let event_pump = sdl.event_pump().unwrap();
 
@@ -89,7 +88,7 @@ impl RendererBuilder {
     }
 }
 
-impl RendererState<'_> {
+impl RendererState<'_, '_> {
     fn run(mut self) {
         let (width, height) = self.image.dimensions();
         'main_loop: loop {
@@ -171,10 +170,11 @@ impl RendererState<'_> {
                 draw_col_end = height as i32;
             }
 
-            // let i_col_h = 1.0 / col_h;
-
+            let i_col_h = 1.0 / col_h;
             for line in draw_col_start..draw_col_end {
-                self.image.set(col, line as u32, 0xFFFFFFFF.into());
+                let vratio = (line as f32 - col_start) * i_col_h;
+                let color = plane.texture.map_pixel(split, vratio);
+                self.image.set(col, line as u32, color);
             }
         }
     }

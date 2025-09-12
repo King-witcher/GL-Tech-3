@@ -2,13 +2,13 @@ use crate::{Ray, Vector, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
 // like planes are owned by entities and the Scene only holds references to them for rendering and collision detection.
-pub struct Scene {
-    pub camera: Entity,
-    pub(crate) planes: Vec<*mut Plane>,
-    pub(crate) entities: Vec<Entity>,
+pub struct Scene<'a> {
+    pub camera: Entity<'a>,
+    pub(crate) planes: Vec<*mut Plane<'a>>,
+    pub(crate) entities: Vec<Entity<'a>>,
 }
 
-impl Scene {
+impl<'a> Scene<'a> {
     pub fn new() -> Self {
         Self {
             camera: Entity::new(Vector(0.0, 0.0)),
@@ -17,7 +17,7 @@ impl Scene {
         }
     }
 
-    pub fn add_node(&mut self, node: Entity) {
+    pub fn add_node(&mut self, node: Entity<'a>) {
         let planes = node.planes.clone();
         self.planes.extend(planes);
         self.entities.push(node);

@@ -4,7 +4,7 @@ pub struct Color(u32);
 impl Color {
     #[inline]
     pub fn rgb(r: u8, g: u8, b: u8) -> Self {
-        Self(((r as u32) << 16) | ((g as u32) << 8) | (b as u32))
+        Self(((r as u32) << 24) | ((g as u32) << 16) | ((b as u32) << 8))
     }
 
     #[inline]

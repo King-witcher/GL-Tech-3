@@ -2,18 +2,18 @@ use crate::prelude::*;
 use crate::scripting::script::Script;
 use crate::world::Plane;
 
-pub struct Entity {
+pub struct Entity<'a> {
     pos: Vector,
     dir: Vector,
 
     // One entity owns its planes and children and is responsible for dropping them when it goes out of scope.
     // The Scene will hold references to the planes for rendering and collision detection.
-    pub(crate) planes: Vec<*mut Plane>,
-    pub(crate) _children: Vec<*mut Entity>,
+    pub(crate) planes: Vec<*mut Plane<'a>>,
+    pub(crate) _children: Vec<*mut Entity<'a>>,
     pub(crate) scripts: Vec<Box<dyn Script>>,
 }
 
-impl Entity {
+impl<'a> Entity<'a> {
     pub fn new(position: Vector) -> Self {
         Self {
             pos: position,
@@ -26,7 +26,7 @@ impl Entity {
 
     /// Creates a new EntityNode from a Plane.
     /// The position of the EntityNode is set to the center of the Plane.
-    pub fn from_plane(plane: Plane) -> Self {
+    pub fn from_plane(plane: Plane<'a>) -> Self {
         let pos = plane.segment.start + plane.segment.dir * 0.5;
         let dir = plane.dir();
         let ptr = Box::into_raw(Box::new(plane));
@@ -44,7 +44,7 @@ impl Entity {
         self.scripts.push(script);
     }
 
-    pub fn add_plane(&mut self, plane: Plane) {
+    pub fn add_plane(&mut self, plane: Plane<'a>) {
         let ptr = Box::into_raw(Box::new(plane));
         self.planes.push(ptr);
     }
@@ -54,7 +54,7 @@ impl Entity {
     }
 }
 
-impl Drop for Entity {
+impl Drop for Entity<'_> {
     fn drop(&mut self) {
         for &plane_ptr in &self.planes {
             unsafe {
@@ -70,7 +70,7 @@ impl Drop for Entity {
     }
 }
 
-impl Spatial for Entity {
+impl Spatial for Entity<'_> {
     #[inline]
     fn pos(&self) -> Vector {
         self.pos

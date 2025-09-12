@@ -1,4 +1,5 @@
 pub mod core;
+mod exports;
 pub mod imaging;
 pub mod mutarc;
 pub mod prelude;
@@ -8,4 +9,4 @@ pub mod sdl;
 pub mod window;
 pub mod world;
 
-pub use prelude::*;
+pub use exports::*;
