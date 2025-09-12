@@ -23,14 +23,13 @@ impl Scene {
         self.entities.push(node);
     }
 
-    pub(crate) fn nearest_plane(&self, origin: Vector, direction: Vector) -> Option<(&Plane, f32)> {
+    pub(crate) fn raycast(&self, ray: Segment) -> Option<(&Plane, f32)> {
         let mut nearest_r = f32::INFINITY;
         let mut nearest_plane = None;
-        let segment = Segment::new(origin, direction);
 
         for plane in self.planes.iter().map(|&p| unsafe { &*p }) {
-            let plane_segment = Segment::new(plane.start, plane.direction);
-            let (r, s) = segment.get_rs(plane_segment);
+            let (r, s) = ray.get_rs(plane.segment);
+
             if r < 0.0 || s < 0.0 || s >= 1.0 {
                 continue;
             };

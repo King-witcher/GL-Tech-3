@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use gltech3::prelude::*;
 
 extern crate gltech3;

@@ -28,7 +28,7 @@ impl Entity {
     /// Creates a new EntityNode from a Plane.
     /// The position of the EntityNode is set to the center of the Plane.
     pub fn from_plane(plane: Plane) -> Self {
-        let pos = plane.start + plane.direction * 0.5;
+        let pos = plane.segment.start + plane.segment.dir * 0.5;
         let dir = plane.dir();
         let ptr = Box::into_raw(Box::new(plane));
 
@@ -82,7 +82,7 @@ impl Spatial for Entity {
         for &plane_ptr in &self.planes {
             unsafe {
                 let plane = plane_ptr.as_mut().unwrap();
-                plane.start = plane.start + delta;
+                plane.segment.start = plane.segment.start + delta;
             }
         }
         self.pos = pos
@@ -97,7 +97,7 @@ impl Spatial for Entity {
         for &plane_ptr in &self.planes {
             unsafe {
                 let plane = plane_ptr.as_mut().unwrap();
-                plane.direction = plane.direction.cmul(factor);
+                plane.segment.dir = plane.segment.dir.cmul(factor);
             }
         }
         self.dir = value;
@@ -112,7 +112,7 @@ impl Spatial for Entity {
         for &plane_ptr in &self.planes {
             unsafe {
                 let plane = plane_ptr.as_mut().unwrap();
-                plane.start = plane.start + delta;
+                plane.segment.start = plane.segment.start + delta;
             }
         }
     }

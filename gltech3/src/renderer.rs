@@ -148,20 +148,19 @@ impl RendererState<'_> {
         let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
         for col in 0..self.image.width {
-            let ray_direction = {
+            let ray = {
                 let delta = self.image.width as i32 / 2 - col as i32;
-                camera_dir + camera_left * step0 * delta as f32
+                let dir = camera_dir + camera_left * step0 * delta as f32;
+                Segment::new(self.scene.camera.pos(), dir)
             };
 
-            let collision = self
-                .scene
-                .nearest_plane(self.scene.camera.pos(), ray_direction);
+            let collision = self.scene.raycast(ray);
 
             let Some((_plane, distance)) = collision else {
                 continue;
             };
 
-            let col_h = col_height_1 / (ray_direction.dot_product(camera_dir) * distance);
+            let col_h = col_height_1 / (ray.dir.dot_product(camera_dir) * distance);
             let col_start = (self.image.height as f32 - 1.0 - col_h) * 0.5;
             let col_end = (self.image.height as f32 - 1.0 + col_h) * 0.5;
 

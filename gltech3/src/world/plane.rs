@@ -4,78 +4,51 @@ use crate::world::{Entity, Spatial};
 
 pub struct Plane {
     // pub(crate) inner: Box<PlaneInner>,
-    pub start: Vector,
-    pub direction: Vector,
-}
-
-pub(crate) struct RayHit {
-    pub r: f32,
-    pub s: f32,
+    pub segment: Segment,
 }
 
 impl Plane {
-    pub fn new(start: Vector, direction: Vector) -> Self {
-        Self { start, direction }
-    }
-
-    pub(crate) fn test_ray(&self, origin: Vector, direction: Vector) -> Option<RayHit> {
-        let det = direction.x() * self.direction.y() - direction.y() * self.direction.x();
-        let idet = 1.0 / det;
-
-        // Parallel lines
-        if det == 0.0 {
-            return None;
+    pub fn new(start: Vector, dir: Vector) -> Self {
+        Self {
+            segment: Segment::new(start, dir),
         }
-
-        let spldet = direction.x() * (origin.y() - self.start.y())
-            - direction.y() * (origin.x() - self.start.x());
-        let dstdet = self.direction.x() * (origin.y() - self.start.y())
-            - self.direction.y() * (origin.x() - self.start.x());
-        let spltmp = spldet * idet;
-        let dsttmp = dstdet * idet;
-
-        if spltmp < 0.0 || spltmp >= 1.0 || dsttmp <= 0.0 {
-            return None;
-        }
-
-        Some(RayHit { r: dsttmp, s: 0.5 })
     }
 
     #[inline]
     pub fn end(&self) -> Vector {
-        self.start + self.direction
+        self.segment.end()
     }
 }
 
 impl Spatial for Plane {
     #[inline]
     fn pos(&self) -> Vector {
-        self.start
+        self.segment.start
     }
 
     #[inline]
     fn set_pos(&mut self, pos: Vector) {
-        self.start = pos;
+        self.segment.start = pos;
     }
 
     #[inline]
     fn dir(&self) -> Vector {
-        self.direction
+        self.segment.dir
     }
 
     #[inline]
     fn set_dir(&mut self, dir: Vector) {
-        self.direction = dir;
+        self.segment.dir = dir;
     }
 
     #[inline]
     fn translate(&mut self, delta: Vector) {
-        self.start = self.start + delta;
+        self.segment.start = self.segment.start + delta;
     }
 
     #[inline]
     fn transform(&mut self, by: Vector) {
-        self.direction = self.direction.cmul(by);
+        self.segment.dir = self.segment.dir.cmul(by);
     }
 }
 
@@ -91,8 +64,8 @@ impl std::fmt::Display for Plane {
         write!(
             f,
             "Plane <{:?}, {:?}>",
-            self.start,
-            self.start + self.direction
+            self.segment.start,
+            self.segment.end()
         )
     }
 }

@@ -13,6 +13,11 @@ impl Segment {
     }
 
     #[inline]
+    pub fn end(&self) -> Vector {
+        self.start + self.dir
+    }
+
+    #[inline]
     pub fn get_rs(self, other: Segment) -> (f32, f32) {
         let det = self.dir.y() * other.dir.x() - self.dir.x() * other.dir.y();
         if det == 0.0 {
