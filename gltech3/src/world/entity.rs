@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use crate::scripting::script::Script;
 use crate::world::Plane;
-use crate::world::Spatial;
 
 pub struct Entity {
     pos: Vector,

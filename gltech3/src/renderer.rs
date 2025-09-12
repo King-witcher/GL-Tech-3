@@ -5,7 +5,7 @@ use crate::prelude::*;
 use crate::{
     imaging::Image,
     scripting::script::UpdateContext,
-    world::{Entity, Scene, Spatial},
+    world::{Entity, Scene},
 };
 use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
@@ -151,7 +151,7 @@ impl RendererState<'_> {
             let ray = {
                 let delta = self.image.width as i32 / 2 - col as i32;
                 let dir = camera_dir + camera_left * step0 * delta as f32;
-                Segment::new(self.scene.camera.pos(), dir)
+                Ray::new(self.scene.camera.pos(), dir)
             };
 
             let collision = self.scene.raycast(ray);

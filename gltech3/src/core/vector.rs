@@ -207,7 +207,7 @@ const TO_DEG: f32 = 180.0 / std::f32::consts::PI;
 
 impl Display for Vector {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.0, self.1)
+        write!(f, "<{}, {}>", self.0, self.1)
     }
 }
 

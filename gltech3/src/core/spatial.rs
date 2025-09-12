@@ -6,6 +6,7 @@ pub trait Spatial {
     fn dir(&self) -> Vector;
     fn set_pos(&mut self, pos: Vector);
     fn set_dir(&mut self, dir: Vector);
+
     #[inline]
     fn angle(&self) -> f32 {
         self.dir().angle()
@@ -17,6 +18,7 @@ pub trait Spatial {
         self.set_dir(dir.cmul(trans));
     }
 
+    // This method can be optimized using assign operations.
     #[inline]
     fn translate(&mut self, delta: Vector) {
         self.set_pos(self.pos() + delta);

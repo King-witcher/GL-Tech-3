@@ -1,16 +1,15 @@
 use crate::prelude::*;
 
-use crate::world::{Entity, Spatial};
+use crate::world::Entity;
 
 pub struct Plane {
-    // pub(crate) inner: Box<PlaneInner>,
-    pub segment: Segment,
+    pub segment: Ray,
 }
 
 impl Plane {
     pub fn new(start: Vector, dir: Vector) -> Self {
         Self {
-            segment: Segment::new(start, dir),
+            segment: Ray::new(start, dir),
         }
     }
 
@@ -28,27 +27,22 @@ impl Spatial for Plane {
 
     #[inline]
     fn set_pos(&mut self, pos: Vector) {
-        self.segment.start = pos;
+        self.segment.set_pos(pos);
     }
 
     #[inline]
     fn dir(&self) -> Vector {
-        self.segment.dir
+        self.segment.dir()
     }
 
     #[inline]
     fn set_dir(&mut self, dir: Vector) {
-        self.segment.dir = dir;
+        self.segment.set_dir(dir);
     }
 
     #[inline]
     fn translate(&mut self, delta: Vector) {
-        self.segment.start = self.segment.start + delta;
-    }
-
-    #[inline]
-    fn transform(&mut self, by: Vector) {
-        self.segment.dir = self.segment.dir.cmul(by);
+        self.segment.translate(delta);
     }
 }
 
@@ -61,11 +55,6 @@ impl From<Plane> for Entity {
 
 impl std::fmt::Display for Plane {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Plane <{:?}, {:?}>",
-            self.segment.start,
-            self.segment.end()
-        )
+        write!(f, "Plane <{}, {}>", self.segment.start, self.segment.end())
     }
 }

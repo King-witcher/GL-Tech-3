@@ -2,7 +2,7 @@ use gltech3::{
     prelude::*,
     renderer::RendererBuilder,
     scripting::{Script, UpdateContext},
-    world::{Entity, Plane, Spatial},
+    world::{Entity, Plane},
 };
 
 pub fn main() {

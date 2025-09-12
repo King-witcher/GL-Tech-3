@@ -1,4 +1,4 @@
-use crate::{Segment, Vector, world::*};
+use crate::{Ray, Vector, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
 // like planes are owned by entities and the Scene only holds references to them for rendering and collision detection.
@@ -23,7 +23,7 @@ impl Scene {
         self.entities.push(node);
     }
 
-    pub(crate) fn raycast(&self, ray: Segment) -> Option<(&Plane, f32)> {
+    pub(crate) fn raycast(&self, ray: Ray) -> Option<(&Plane, f32)> {
         let mut nearest_r = f32::INFINITY;
         let mut nearest_plane = None;
 
