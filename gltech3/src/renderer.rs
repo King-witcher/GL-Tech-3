@@ -91,6 +91,7 @@ impl RendererBuilder {
 
 impl RendererState<'_> {
     fn run(mut self) {
+        let (width, height) = self.image.dimensions();
         'main_loop: loop {
             for event in self.event_pump.poll_iter() {
                 match event {
@@ -108,12 +109,10 @@ impl RendererState<'_> {
             self.update();
 
             unsafe {
-                let slice = slice::from_raw_parts(
-                    self.image.buffer.as_ptr() as *mut u8,
-                    (self.image.width * self.image.height * 4) as usize,
-                );
+                let slice =
+                    slice::from_raw_parts(self.image.u8_buffer(), (width * height * 4) as usize);
                 self.sdl_texture
-                    .update(None, slice, (self.image.width * 4) as usize)
+                    .update(None, slice, (width * 4) as usize)
                     .unwrap();
                 self.canvas.copy(&self.sdl_texture, None, None).unwrap();
                 self.canvas.present();
@@ -134,22 +133,19 @@ impl RendererState<'_> {
     }
 
     fn draw(&mut self) {
+        let (width, height) = self.image.dimensions();
         unsafe {
-            std::ptr::write_bytes(
-                self.image.buffer.as_ptr(),
-                0,
-                (self.image.width * self.image.height) as usize,
-            );
+            std::ptr::write_bytes(self.image.u32_buffer(), 0, (width * height) as usize);
         }
         let tan = f32::tan(110.0 * 0.5 * f32::consts::PI / 180.0);
-        let step0 = 2.0 * tan / self.image.width as f32;
-        let col_height_1 = self.image.width as f32 / (2.0 * tan);
+        let step0 = 2.0 * tan / width as f32;
+        let col_height_1 = width as f32 / (2.0 * tan);
         let camera_dir = self.scene.camera.dir();
         let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
-        for col in 0..self.image.width {
+        for col in 0..width {
             let ray = {
-                let delta = self.image.width as i32 / 2 - col as i32;
+                let delta = width as i32 / 2 - col as i32;
                 let dir = camera_dir + camera_left * step0 * delta as f32;
                 Ray::new(self.scene.camera.pos(), dir)
             };
@@ -161,26 +157,24 @@ impl RendererState<'_> {
             };
 
             let col_h = col_height_1 / (ray.dir.dot_product(camera_dir) * distance);
-            let col_start = (self.image.height as f32 - 1.0 - col_h) * 0.5;
-            let col_end = (self.image.height as f32 - 1.0 + col_h) * 0.5;
+            let col_start = (self.image.heightf - 1.0 - col_h) * 0.5;
+            let col_end = (self.image.heightf - 1.0 + col_h) * 0.5;
 
-            let mut draw_col_start =
-                self.image.height as i32 - (self.image.height as f32 - col_start) as i32; // Inclusve
-            let mut draw_col_end =
-                self.image.height as i32 - (self.image.height as f32 - col_end) as i32; // Exclusive
+            let mut draw_col_start = height as i32 - (height as f32 - col_start) as i32; // Inclusive
+            let mut draw_col_end = height as i32 - (height as f32 - col_end) as i32; // Exclusive
 
             if draw_col_start < 0 {
                 draw_col_start = 0;
             }
 
-            if draw_col_end >= self.image.height as i32 {
-                draw_col_end = self.image.height as i32;
+            if draw_col_end >= height as i32 {
+                draw_col_end = height as i32;
             }
 
             // let i_col_h = 1.0 / col_h;
 
             for line in draw_col_start..draw_col_end {
-                self.image.set(col, line as u32, 0xFFFFFFFF);
+                self.image.set(col, line as u32, 0xFFFFFFFF.into());
             }
         }
     }

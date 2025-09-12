@@ -1,23 +1,21 @@
-use core::alloc;
 use std::{alloc::Layout, ptr::NonNull};
 
-use sdl2::libc::{self, *};
+use crate::imaging::Color;
 
 pub struct Image {
-    pub(crate) buffer: NonNull<u32>,
-    pub(crate) width: u32,
-    pub(crate) height: u32,
+    buffer: NonNull<Color>,
+    width: u32,
+    height: u32,
     pub(crate) widthf: f32,
     pub(crate) heightf: f32,
 }
 
 impl Image {
     pub fn new(width: u32, height: u32) -> Self {
-        let layout = Layout::array::<u32>((width * height) as usize).unwrap();
-        let size = width * height * 4;
+        let layout = Layout::array::<Color>((width * height) as usize).unwrap();
 
         let buffer = unsafe {
-            let ptr = std::alloc::alloc(layout) as *mut u32;
+            let ptr = std::alloc::alloc(layout) as *mut Color;
             NonNull::new_unchecked(ptr)
         };
 
@@ -30,15 +28,33 @@ impl Image {
         }
     }
 
+    #[inline]
+    pub fn dimensions(&self) -> (u32, u32) {
+        (self.width, self.height)
+    }
+
+    #[inline]
     pub fn width(&self) -> u32 {
         self.width
     }
 
+    #[inline]
     pub fn height(&self) -> u32 {
         self.height
     }
 
-    pub fn get(&self, x: u32, y: u32) -> u32 {
+    #[inline]
+    pub(crate) fn u32_buffer(&self) -> *mut u32 {
+        self.buffer.as_ptr() as *mut u32
+    }
+
+    #[inline]
+    pub(crate) fn u8_buffer(&self) -> *mut u8 {
+        self.buffer.as_ptr() as *mut u8
+    }
+
+    #[inline]
+    pub fn get(&self, x: u32, y: u32) -> Color {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
             let mut buffer = self.buffer.as_ptr();
@@ -47,7 +63,8 @@ impl Image {
         }
     }
 
-    pub fn set(&self, x: u32, y: u32, value: u32) {
+    #[inline]
+    pub fn set(&self, x: u32, y: u32, value: Color) {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
             let mut buffer = self.buffer.as_ptr();
@@ -59,7 +76,7 @@ impl Image {
 
 impl Drop for Image {
     fn drop(&mut self) {
-        let layout = Layout::array::<u32>((self.width * self.height) as usize).unwrap();
+        let layout = Layout::array::<Color>((self.width * self.height) as usize).unwrap();
         unsafe {
             std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
         }

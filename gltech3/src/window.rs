@@ -56,8 +56,8 @@ impl Window {
             SDL_UpdateTexture(
                 self.texture,
                 None,
-                self.buffer.buffer.as_ptr(),
-                (self.buffer.width * 4) as i32,
+                self.buffer.u32_buffer(),
+                (self.buffer.width() * 4) as i32,
             );
 
             SDL_RenderCopy(self.renderer, self.texture, None, None);
