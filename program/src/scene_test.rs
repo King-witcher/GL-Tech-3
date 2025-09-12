@@ -17,7 +17,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Rotating plane
     {
         let texture = Texture::new(&image);
-        let primitive = Plane::new(Vector(0.0, 0.0), Vector(0.0, 1.0), texture);
+        let primitive = Plane::new(Vector(1.0, 0.0), Vector(1.0, 0.0), texture);
         let mut entity = Entity::from_plane(primitive);
         entity.add_script(Box::new(RotateScript));
         scene.add_node(entity);
