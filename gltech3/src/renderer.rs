@@ -152,7 +152,7 @@ impl RendererState<'_> {
 
             let collision = self.scene.raycast(ray);
 
-            let Some((_plane, distance)) = collision else {
+            let Some((plane, (distance, split))) = collision else {
                 continue;
             };
 
