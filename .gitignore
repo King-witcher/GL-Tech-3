@@ -2,4 +2,4 @@
 *.dll
 *.lib
 .VSCodeCounter
-assets
+/base

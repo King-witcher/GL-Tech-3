@@ -11,17 +11,23 @@ pub enum LoadImageError {
     BmpError(bmp::BmpError),
 }
 
-pub fn load_image(path: &Path) -> Result<gltech3::imaging::Image, LoadImageError> {
+pub fn load_bmp(path: &Path) -> Result<gltech::imaging::Image, LoadImageError> {
     let mut file = File::open(path)?;
     let bmp = bmp::from_reader(&mut file)?;
-    let image = gltech3::imaging::Image::new(bmp.get_width(), bmp.get_height());
+    let image = gltech::imaging::Image::new(bmp.get_width(), bmp.get_height());
     for (x, y) in bmp.coordinates() {
         let pixel = bmp.get_pixel(x, y);
-        image.set(
-            x,
-            y,
-            gltech3::imaging::Color::rgb(pixel.r, pixel.g, pixel.b),
-        );
+        image.set(x, y, gltech::imaging::Color::rgb(pixel.r, pixel.g, pixel.b));
+    }
+    Ok(image)
+}
+
+pub fn get_image(bytes: &Vec<u8>) -> Result<gltech::imaging::Image, LoadImageError> {
+    let bmp = bmp::from_reader(&mut &bytes[..])?;
+    let image = gltech::imaging::Image::new(bmp.get_width(), bmp.get_height());
+    for (x, y) in bmp.coordinates() {
+        let pixel = bmp.get_pixel(x, y);
+        image.set(x, y, gltech::imaging::Color::rgb(pixel.r, pixel.g, pixel.b));
     }
     Ok(image)
 }

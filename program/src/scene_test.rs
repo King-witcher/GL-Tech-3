@@ -1,6 +1,4 @@
-use std::path::Path;
-
-use gltech3::{
+use gltech::{
     prelude::*,
     renderer::RendererBuilder,
     scripting::{Script, UpdateContext},
@@ -8,15 +6,17 @@ use gltech3::{
     Image, Texture,
 };
 
-use crate::load_image::load_image;
+use crate::{file_system, image};
 
-pub fn main() {
+pub fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let file_system = file_system::load_file_system()?;
+    let bmp = file_system.get("wood.bmp").unwrap();
+
     let mut scene = Scene::new();
-    let path = Path::new("./assets/bmp.bmp");
-    let image = load_image(path).unwrap();
+    let image = image::get_image(bmp).unwrap();
     let image_ref = unsafe { &*(&image as *const Image) };
     let texture = Texture::new(image_ref);
-    let plane = Plane::new(Vector(2.0, 0.0), Vector(1.0, 0.0), texture);
+    let plane = Plane::new(Vector(1.0, 0.0), Vector(1.0, 0.0), texture);
     let mut plane: Entity = plane.into();
     plane.add_script(Box::new(RotateScript));
     scene.add_node(plane);
@@ -25,17 +25,19 @@ pub fn main() {
         .height(1080)
         .fullscreen();
     renderer.start();
+
+    Ok(())
 }
 
 struct RotateScript;
 
 impl Script for RotateScript {
-    fn start(&mut self, _ctx: &gltech3::scripting::script::StartContext) {}
+    fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
 
     fn update(&mut self, ctx: &mut UpdateContext) {
         ctx.entity.rotate(1.0);
         // print!("Module: {:?}\n", ctx.entity.dir());
     }
 
-    fn end(&mut self, _ctx: &gltech3::scripting::script::EndContext) {}
+    fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}
 }

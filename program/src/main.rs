@@ -1,14 +1,13 @@
-use std::{fmt::Debug, fs::File, io::Read, path::Path};
-
-use gltech3::prelude::*;
-
-extern crate gltech3;
+extern crate gltech;
 extern crate sdl2;
 extern crate thiserror;
+extern crate zip;
 
-mod load_image;
+mod file_system;
+mod image;
 mod scene_test;
 
-pub fn main() {
-    scene_test::main();
+pub fn main() -> Result<(), Box<dyn std::error::Error>> {
+    scene_test::main()?;
+    Ok(())
 }
