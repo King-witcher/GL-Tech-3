@@ -45,11 +45,36 @@ impl<'a> Texture<'a> {
     }
 
     #[inline]
-    pub fn map_pixel(&self, x: f32, y: f32) -> Color {
+    pub fn map_flat(&self, x: f32, y: f32) -> Color {
         let x = self.source.widthf * (self.hrepeat * x + self.hoffset) % self.source.widthf;
         let y = self.source.heightf * (self.vrepeat * y + self.voffset) % self.source.heightf;
         let x = x as u32;
         let y = y as u32;
         self.source.get(x, y)
+    }
+
+    #[inline]
+    pub fn map_bilinear(&self, x: f32, y: f32) -> Color {
+        let wf = self.source.widthf - 1.0;
+        let hf = self.source.heightf - 1.0;
+
+        let x = wf * (self.hrepeat * x + self.hoffset) % wf;
+        let y = hf * (self.vrepeat * y + self.voffset) % hf;
+
+        let x0 = x.floor() as u32;
+        let y0 = y.floor() as u32;
+
+        let tx = x - x.floor();
+        let ty = y - y.floor();
+
+        let q11 = self.source.get(x0, y0);
+        let q21 = self.source.get(x0 + 1, y0);
+        let q12 = self.source.get(x0, y0 + 1);
+        let q22 = self.source.get(x0 + 1, y0 + 1);
+
+        let top = q11.lerp(q21, tx);
+        let bottom = q12.lerp(q22, tx);
+
+        return top.lerp(bottom, ty);
     }
 }

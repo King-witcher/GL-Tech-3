@@ -173,7 +173,7 @@ impl RendererState<'_, '_> {
             let i_col_h = 1.0 / col_h;
             for line in draw_col_start..draw_col_end {
                 let vratio = (line as f32 - col_start) * i_col_h;
-                let color = plane.texture.map_pixel(split, vratio);
+                let color = plane.texture.map_bilinear(split, vratio);
                 self.image.set(col, line as u32, color);
             }
         }

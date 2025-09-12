@@ -12,6 +12,20 @@
         "isDefault": true
       },
       "problemMatcher": ["$rustc"]
+    },
+    {
+      "label": "cargo build --release",
+      "type": "shell",
+      "command": "cargo",
+      "args": [
+        "build",
+        "--release"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$rustc"]
     }
   ]
 }

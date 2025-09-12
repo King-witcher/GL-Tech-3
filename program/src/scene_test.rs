@@ -12,10 +12,10 @@ use crate::load_image::load_image;
 
 pub fn main() {
     let mut scene = Scene::new();
-    let path = Path::new("./bmp.bmp");
+    let path = Path::new("./assets/bmp.bmp");
     let image = load_image(path).unwrap();
-    let imageRef = unsafe { &*(&image as *const Image) };
-    let texture = Texture::new(imageRef);
+    let image_ref = unsafe { &*(&image as *const Image) };
+    let texture = Texture::new(image_ref);
     let plane = Plane::new(Vector(2.0, 0.0), Vector(1.0, 0.0), texture);
     let mut plane: Entity = plane.into();
     plane.add_script(Box::new(RotateScript));
