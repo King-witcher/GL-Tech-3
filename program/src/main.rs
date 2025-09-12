@@ -1,5 +1,4 @@
 extern crate gltech;
-extern crate sdl2;
 extern crate thiserror;
 extern crate zip;
 

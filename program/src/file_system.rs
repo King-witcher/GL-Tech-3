@@ -30,7 +30,12 @@ pub struct FileSystem {
 impl FileSystem {
     pub fn get(&self, name: &str) -> FileSystemResult<&Vec<u8>> {
         let result = self.files.get(name);
-        Ok(result.unwrap_or(Err(FileSystemError::ResourceNotFound(name.to_string()))?))
+
+        if let Some(data) = result {
+            Ok(data)
+        } else {
+            Err(FileSystemError::ResourceNotFound(name.to_string()))
+        }
     }
 }
 
@@ -43,7 +48,11 @@ pub fn load_file_system() -> FileSystemResult<FileSystem> {
         let metadata = fs::metadata(&path)?;
         if metadata.is_file() && path.extension() == Some(OsStr::new("pk5")) {
             let files_loaded = load_pack(&mut hash_map, &path)?;
-            println!("Loaded {} files from {:?}", files_loaded, path);
+            println!(
+                "Loaded {} files from {}",
+                files_loaded,
+                path.to_str().unwrap()
+            );
         }
     }
 
@@ -55,13 +64,14 @@ fn load_pack(hash_map: &mut HashMap<String, Vec<u8>>, path: &Path) -> FileSystem
     let mut count = 0;
     let mut archive = ZipArchive::new(file)?;
     for i in 0..archive.len() {
-        let file = archive.by_index(i).unwrap();
+        let mut file = archive.by_index(i).unwrap();
         let name = file.name().to_string();
-        let bytes = file.bytes().map(Result::unwrap).collect::<Vec<u8>>();
+        let mut bytes = Vec::with_capacity(file.size() as usize);
+        file.read_to_end(&mut bytes)?;
         if !hash_map.contains_key(&name) {
-            println!("load {}", name);
-            count += 1;
+            println!("load {} ({} bytes)", name, bytes.len());
             hash_map.insert(name, bytes);
+            count += 1;
         }
     }
     Ok(count)

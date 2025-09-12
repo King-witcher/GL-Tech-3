@@ -11,7 +11,7 @@ pub enum LoadImageError {
     BmpError(bmp::BmpError),
 }
 
-pub fn load_bmp(path: &Path) -> Result<gltech::imaging::Image, LoadImageError> {
+pub fn _load_bmp(path: &Path) -> Result<gltech::imaging::Image, LoadImageError> {
     let mut file = File::open(path)?;
     let bmp = bmp::from_reader(&mut file)?;
     let image = gltech::imaging::Image::new(bmp.get_width(), bmp.get_height());

@@ -1,12 +1,12 @@
 use core::f32;
 use std::slice;
 
+use crate::prelude::*;
 use crate::{
     imaging::Image,
     scripting::script::UpdateContext,
     world::{Entity, Scene},
 };
-use crate::{prelude::*, sdl};
 use sdl2::{EventPump, pixels::PixelFormatEnum, render::Canvas, video::Window};
 
 pub struct RendererBuilder<'a> {

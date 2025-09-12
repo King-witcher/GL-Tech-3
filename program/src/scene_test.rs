@@ -10,7 +10,7 @@ use crate::{file_system, image};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
-    let wood = file_system.get("wdood.bmp")?;
+    let wood = file_system.get("wood.bmp")?;
 
     let mut scene = Scene::new();
     let image = image::get_image(wood).unwrap();
