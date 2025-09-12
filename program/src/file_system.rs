@@ -10,15 +10,31 @@ use thiserror::Error;
 use zip::ZipArchive;
 
 #[derive(Error, Debug)]
-pub enum LoadFilesError {
+pub enum FileSystemError {
     #[error("Failed to load base files")]
     IoError(std::io::Error),
 
     #[error("Invalid base files")]
     ZipError(zip::result::ZipError),
+
+    #[error("Resource not found: \"{0}\"")]
+    ResourceNotFound(String),
 }
 
-pub fn load_file_system() -> Result<HashMap<String, Vec<u8>>, LoadFilesError> {
+type FileSystemResult<T> = Result<T, FileSystemError>;
+
+pub struct FileSystem {
+    files: HashMap<String, Vec<u8>>,
+}
+
+impl FileSystem {
+    pub fn get(&self, name: &str) -> FileSystemResult<&Vec<u8>> {
+        let result = self.files.get(name);
+        Ok(result.unwrap_or(Err(FileSystemError::ResourceNotFound(name.to_string()))?))
+    }
+}
+
+pub fn load_file_system() -> FileSystemResult<FileSystem> {
     let base_path = Path::new("base");
     let paths = fs::read_dir(base_path)?;
     let mut hash_map = HashMap::new();
@@ -31,13 +47,10 @@ pub fn load_file_system() -> Result<HashMap<String, Vec<u8>>, LoadFilesError> {
         }
     }
 
-    Ok(hash_map)
+    Ok(FileSystem { files: hash_map })
 }
 
-fn load_pack(
-    hash_map: &mut HashMap<String, Vec<u8>>,
-    path: &Path,
-) -> Result<usize, LoadFilesError> {
+fn load_pack(hash_map: &mut HashMap<String, Vec<u8>>, path: &Path) -> FileSystemResult<usize> {
     let file = File::open(path)?;
     let mut count = 0;
     let mut archive = ZipArchive::new(file)?;
@@ -54,14 +67,14 @@ fn load_pack(
     Ok(count)
 }
 
-impl From<std::io::Error> for LoadFilesError {
+impl From<std::io::Error> for FileSystemError {
     fn from(err: std::io::Error) -> Self {
-        LoadFilesError::IoError(err)
+        FileSystemError::IoError(err)
     }
 }
 
-impl From<zip::result::ZipError> for LoadFilesError {
+impl From<zip::result::ZipError> for FileSystemError {
     fn from(err: zip::result::ZipError) -> Self {
-        LoadFilesError::ZipError(err)
+        FileSystemError::ZipError(err)
     }
 }

@@ -10,10 +10,10 @@ use crate::{file_system, image};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
-    let bmp = file_system.get("wood.bmp").unwrap();
+    let wood = file_system.get("wdood.bmp")?;
 
     let mut scene = Scene::new();
-    let image = image::get_image(bmp).unwrap();
+    let image = image::get_image(wood).unwrap();
     let image_ref = unsafe { &*(&image as *const Image) };
     let texture = Texture::new(image_ref);
     let plane = Plane::new(Vector(1.0, 0.0), Vector(1.0, 0.0), texture);
@@ -36,7 +36,6 @@ impl Script for RotateScript {
 
     fn update(&mut self, ctx: &mut UpdateContext) {
         ctx.entity.rotate(1.0);
-        // print!("Module: {:?}\n", ctx.entity.dir());
     }
 
     fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}

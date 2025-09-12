@@ -8,6 +8,11 @@ mod image;
 mod scene_test;
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    scene_test::main()?;
+    let result = scene_test::main();
+    if let Err(e) = result {
+        eprintln!("Error: {}", e);
+        eprintln!("Caused by: {:?}", e);
+        std::process::exit(1);
+    }
     Ok(())
 }
