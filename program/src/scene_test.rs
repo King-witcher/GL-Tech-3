@@ -3,19 +3,18 @@ use gltech::{
     renderer::RendererBuilder,
     scripting::{Script, UpdateContext},
     world::{Entity, Plane},
-    Image, Texture,
+    Texture,
 };
 
-use crate::{file_system, image};
+use crate::{file_system, images};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
-    let wood = file_system.get("wood.bmp")?;
+    let glass4a = file_system.get("textures/glass/marineglass4a.dds")?;
+    let image = images::get_from_file(glass4a)?;
 
     let mut scene = Scene::new();
-    let image = image::get_image(wood).unwrap();
-    let image_ref = unsafe { &*(&image as *const Image) };
-    let texture = Texture::new(image_ref);
+    let texture: Texture = Texture::new(&image);
     let plane = Plane::new(Vector(1.0, 0.0), Vector(1.0, 0.0), texture);
     let mut plane: Entity = plane.into();
     plane.add_script(Box::new(RotateScript));

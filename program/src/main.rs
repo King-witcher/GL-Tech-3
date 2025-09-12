@@ -1,9 +1,10 @@
 extern crate gltech;
+extern crate image;
 extern crate thiserror;
 extern crate zip;
 
 mod file_system;
-mod image;
+mod images;
 mod scene_test;
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
