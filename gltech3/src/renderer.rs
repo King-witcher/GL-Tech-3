@@ -150,22 +150,18 @@ impl RendererState<'_> {
         for col in 0..self.image.width {
             let ray_direction = {
                 let delta = self.image.width as i32 / 2 - col as i32;
-                let mut dir = camera_dir + camera_left * step0 * delta as f32;
-                dir.modularize();
-                dir
+                camera_dir + camera_left * step0 * delta as f32
             };
 
             let collision = self
                 .scene
                 .nearest_plane(self.scene.camera.pos(), ray_direction);
 
-            let Some((plane, distance)) = collision else {
+            let Some((_plane, distance)) = collision else {
                 continue;
             };
 
-            // println!("Plane: {}", plane.dir().module());
-
-            let col_h = col_height_1 / (ray_direction.dot_product(&camera_dir) * distance);
+            let col_h = col_height_1 / (ray_direction.dot_product(camera_dir) * distance);
             let col_start = (self.image.height as f32 - 1.0 - col_h) * 0.5;
             let col_end = (self.image.height as f32 - 1.0 + col_h) * 0.5;
 

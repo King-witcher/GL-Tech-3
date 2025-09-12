@@ -94,7 +94,6 @@ impl Spatial for Entity {
 
     fn set_dir(&mut self, value: Vector) {
         let factor = value.cdiv(self.dir);
-        println!("Factor: {:?}", factor);
         for &plane_ptr in &self.planes {
             unsafe {
                 let plane = plane_ptr.as_mut().unwrap();

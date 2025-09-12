@@ -10,12 +10,12 @@ impl Vector {
     }
 
     #[inline]
-    pub fn module(&self) -> f32 {
+    pub fn mag(&self) -> f32 {
         f32::sqrt(self.x() * self.x() + self.y() * self.y())
     }
 
     pub fn modularize(&mut self) -> f32 {
-        let module = self.module();
+        let module = self.mag();
         let imodule = 1.0 / module;
         if module != 0.0 {
             self.0 *= imodule;
@@ -25,7 +25,7 @@ impl Vector {
     }
 
     #[inline]
-    pub fn dot_product(&self, other: &Vector) -> f32 {
+    pub fn dot_product(self, other: Vector) -> f32 {
         self.x() * other.x() + self.y() * other.y()
     }
 
@@ -62,13 +62,13 @@ impl Vector {
             return 0.0;
         }
 
-        let temp = TO_DEG * f32::acos(self.x() / self.module());
+        let temp = TO_DEG * f32::acos(self.x() / self.mag());
         if self.y() >= 0.0 { temp } else { 360.0 - temp }
     }
 
     // TODO: Optimize
     pub fn set_rotation(&mut self, angle: f32) {
-        let length = self.module();
+        let length = self.mag();
         self.0 = length * angle.to_radians().cos();
         self.1 = length * angle.to_radians().sin();
     }
@@ -123,6 +123,14 @@ impl Mul<f32> for Vector {
     #[inline]
     fn mul(self, scalar: f32) -> Vector {
         Vector(self.0 * scalar, self.1 * scalar)
+    }
+}
+impl Mul<Vector> for f32 {
+    type Output = Vector;
+
+    #[inline]
+    fn mul(self, vector: Vector) -> Vector {
+        Vector(self * vector.0, self * vector.1)
     }
 }
 
@@ -180,6 +188,13 @@ impl Neg for Vector {
     }
 }
 
+impl From<(f32, f32)> for Vector {
+    #[inline]
+    fn from(tuple: (f32, f32)) -> Self {
+        Vector(tuple.0, tuple.1)
+    }
+}
+
 pub const ZERO: Vector = Vector(0.0, 0.0);
 pub const IDENTITY: Vector = Vector(1.0, 1.0);
 pub const FORWARD: Vector = Vector(0.0, 1.0);
@@ -228,7 +243,7 @@ mod tests {
         let mut v = Vector(3.0, 4.0);
         let module = v.modularize();
         assert_aproximation(module, 5.0);
-        assert_aproximation(v.module(), 1.0);
+        assert_aproximation(v.mag(), 1.0);
     }
 
     #[test]
@@ -238,7 +253,7 @@ mod tests {
 
         let result = first.cmul(second);
 
-        assert_aproximation(result.module(), first.module() * second.module());
+        assert_aproximation(result.mag(), first.mag() * second.mag());
         assert_aproximation(result.angle(), first.angle() + second.angle());
     }
 
@@ -249,7 +264,7 @@ mod tests {
 
         let result = first.cdiv(second);
 
-        assert_aproximation(result.module(), first.module() / second.module());
+        assert_aproximation(result.mag(), first.mag() / second.mag());
         assert_aproximation(result.angle(), first.angle() - second.angle());
     }
 }
