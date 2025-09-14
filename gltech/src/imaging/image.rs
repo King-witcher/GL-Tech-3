@@ -43,6 +43,10 @@ impl Image {
         self.height
     }
 
+    pub fn size(&self) -> usize {
+        (self.width * self.height * 4) as usize
+    }
+
     #[inline]
     pub(crate) fn u32_buffer(&self) -> *mut u32 {
         self.buffer.as_ptr() as *mut u32

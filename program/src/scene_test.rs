@@ -1,6 +1,6 @@
 use gltech::{
+    engine,
     prelude::*,
-    renderer::RendererBuilder,
     scripting::{Script, UpdateContext},
     world::{Entity, Plane},
     Texture,
@@ -10,9 +10,8 @@ use crate::{file_system, images};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
-    // let glass4a = file_system.get("textures/glass/marineglass4a.dds")?;
-    let glass4a = file_system.get("bianca.jpg")?;
-    let image = images::get_from_file(glass4a)?;
+    let bianca = file_system.get("bianca.jpg")?;
+    let image = images::get_from_file(bianca)?;
     let mut scene = Scene::new();
 
     // Rotating plane 1
@@ -32,12 +31,15 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         scene.add_node(entity);
     }
 
-    let renderer = RendererBuilder::new(scene)
-        .width(1366)
-        .height(768)
-        .fullscreen();
+    let mut engine = engine::init()?;
+    engine
+        .fullscreen(true)
+        .title("GLTech 3")
+        .vsync(false)
+        .resolution(800, 450);
 
-    renderer.start();
+    engine.launch(scene)?;
+
     Ok(())
 }
 
@@ -47,7 +49,8 @@ impl Script for RotateScript {
     fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
 
     fn update(&mut self, ctx: &mut UpdateContext) {
-        ctx.entity.rotate(1.0);
+        let elapsed = ctx.delta_time.as_secs_f32();
+        ctx.entity.rotate(90.0 * elapsed);
     }
 
     fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}

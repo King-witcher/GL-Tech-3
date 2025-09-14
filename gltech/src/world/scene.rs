@@ -23,6 +23,11 @@ impl<'a> Scene<'a> {
         self.entities.push(node);
     }
 
+    // FIXME: Iterate the whole tree
+    pub fn entities_mut(&mut self) -> impl Iterator<Item = &mut Entity<'a>> {
+        self.entities.iter_mut()
+    }
+
     pub(crate) fn raycast(&self, ray: Ray) -> Option<(&Plane, (f32, f32))> {
         let mut rs = (f32::INFINITY, f32::INFINITY);
         let mut nearest_plane = None;

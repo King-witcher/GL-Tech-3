@@ -1,9 +1,10 @@
 pub mod core;
+pub mod engine;
 mod exports;
 pub mod imaging;
-pub mod mutarc;
+mod mutarc;
 pub mod prelude;
-pub mod renderer;
+mod renderer;
 pub mod scripting;
 mod sdl;
 pub mod window;
