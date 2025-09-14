@@ -1,22 +1,23 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
-      "type": "cppvsdbg",
-      "request": "launch",
-      "name": "Debug",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "name": "Run (Debug)",
+      "preLaunchTask": "Build (Debug)",
       "program": "${workspaceFolder}/target/debug/program.exe",
-      "preLaunchTask": "cargo build",
-
-      "cwd": "${workspaceFolder}"
+      "request": "launch",
+      "type": "lldb",
     },
     {
-      "type": "cppvsdbg",
-      "request": "launch",
-      "name": "Release",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}",
+      "name": "Run (Release)",
+      "preLaunchTask": "Build (Release)",
       "program": "${workspaceFolder}/target/release/program.exe",
-      "preLaunchTask": "cargo build --release",
-
-      "cwd": "${workspaceFolder}"
-    }
+      "request": "launch",
+      "type": "lldb",
+    },
   ]
 }

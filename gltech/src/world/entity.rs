@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::scripting::UpdateContext;
 use crate::scripting::script::Script;
 use crate::world::Plane;
 
@@ -52,12 +51,6 @@ impl<'a> Entity<'a> {
 
     pub fn add_child(&mut self, _child: Entity) {
         todo!()
-    }
-
-    pub(crate) fn update(&mut self, ctx: &mut UpdateContext) {
-        for script in &mut self.scripts {
-            script.update(ctx);
-        }
     }
 
     pub(crate) fn scripts_mut(&mut self) -> impl Iterator<Item = &mut Box<dyn Script>> + use<'_> {
@@ -126,9 +119,4 @@ impl Spatial for Entity<'_> {
             }
         }
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
 }

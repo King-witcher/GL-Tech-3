@@ -33,7 +33,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut engine = engine::init()?;
     engine
-        .fullscreen(true)
+        .fullscreen(false)
         .title("GLTech 3")
         .vsync(false)
         .resolution(800, 450);
@@ -49,8 +49,8 @@ impl Script for RotateScript {
     fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
 
     fn update(&mut self, ctx: &mut UpdateContext) {
-        let elapsed = ctx.delta_time.as_secs_f32();
-        ctx.entity.rotate(90.0 * elapsed);
+        let delta_time = ctx.delta_time.as_secs_f32();
+        ctx.entity.rotate(90.0 * delta_time);
     }
 
     fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}
