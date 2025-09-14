@@ -4,7 +4,7 @@ pub struct Color(u32);
 impl Color {
     #[inline]
     pub fn rgb(r: u8, g: u8, b: u8) -> Self {
-        Self(((r as u32) << 24) | ((g as u32) << 16) | ((b as u32) << 8))
+        Self(((r as u32) << 24) | ((g as u32) << 16) | ((b as u32) << 8) | 0xFF)
     }
 
     #[inline]
@@ -14,21 +14,30 @@ impl Color {
 
     #[inline]
     pub fn r(self) -> u8 {
-        ((self.0 >> 24) & 0xFF) as u8
+        (self.0 >> 24) as u8
     }
 
     #[inline]
     pub fn g(self) -> u8 {
-        ((self.0 >> 16) & 0xFF) as u8
+        (self.0 >> 16) as u8
     }
 
     #[inline]
     pub fn b(self) -> u8 {
-        ((self.0 >> 8) & 0xFF) as u8
+        (self.0 >> 8) as u8
     }
 
+    #[inline]
     pub fn a(self) -> u8 {
         (self.0 & 0xFF) as u8
+    }
+
+    #[inline]
+    pub fn luma(self) -> u8 {
+        let r = self.r() as f32;
+        let g = self.g() as f32;
+        let b = self.b() as f32;
+        (0.299 * r + 0.587 * g + 0.114 * b) as u8
     }
 
     #[inline]

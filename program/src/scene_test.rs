@@ -10,22 +10,31 @@ use crate::{file_system, images};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
-    let glass4a = file_system.get("textures/glass/marineglass4a.dds")?;
+    // let glass4a = file_system.get("textures/glass/marineglass4a.dds")?;
+    let glass4a = file_system.get("bianca.jpg")?;
     let image = images::get_from_file(glass4a)?;
     let mut scene = Scene::new();
 
-    // Rotating plane
+    // Rotating plane 1
     {
         let texture = Texture::new(&image);
-        let primitive = Plane::new(Vector(1.0, 0.0), Vector(1.0, 0.0), texture);
+        let primitive = Plane::new(Vector(1.0, -0.25), Vector(1.0, 0.0), texture);
+        let mut entity = Entity::from_plane(primitive);
+        entity.add_script(Box::new(RotateScript));
+        scene.add_node(entity);
+    }
+    // Rotating plane 2
+    {
+        let texture = Texture::new(&image);
+        let primitive = Plane::new(Vector(1.0, 0.25), Vector(0.0, 1.0), texture);
         let mut entity = Entity::from_plane(primitive);
         entity.add_script(Box::new(RotateScript));
         scene.add_node(entity);
     }
 
     let renderer = RendererBuilder::new(scene)
-        .width(1920)
-        .height(1080)
+        .width(1366)
+        .height(768)
         .fullscreen();
 
     renderer.start();

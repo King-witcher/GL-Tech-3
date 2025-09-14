@@ -61,11 +61,11 @@ impl<'a> Texture<'a> {
         let x = wf * (self.hrepeat * x + self.hoffset) % wf;
         let y = hf * (self.vrepeat * y + self.voffset) % hf;
 
-        let x0 = x.floor() as u32;
-        let y0 = y.floor() as u32;
+        let x0 = x as u32;
+        let y0 = y as u32;
 
-        let tx = x - x.floor();
-        let ty = y - y.floor();
+        let tx = x - x0 as f32;
+        let ty = y - y0 as f32;
 
         let q11 = self.source.get(x0, y0);
         let q21 = self.source.get(x0 + 1, y0);

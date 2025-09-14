@@ -17,12 +17,12 @@ pub struct RendererBuilder<'a> {
     title: String,
 }
 
-struct RendererState<'a, 'b> {
+struct RendererState<'s, 't> {
     canvas: Canvas<Window>,
     image: Image,
     event_pump: EventPump,
-    scene: Scene<'a>,
-    sdl_texture: sdl2::render::Texture<'b>,
+    scene: Scene<'s>,
+    sdl_texture: sdl2::render::Texture<'t>,
 }
 
 impl<'a> RendererBuilder<'a> {
@@ -57,20 +57,18 @@ impl<'a> RendererBuilder<'a> {
         let video_subsystem = sdl.video().unwrap();
         let window = video_subsystem
             .window(&self.title, self.width, self.height)
-            .position_centered()
-            .opengl()
+            // .position_centered()
+            // .fullscreen()
+            .fullscreen_desktop()
             .build()
             .unwrap();
 
-        let canvas = window.into_canvas().present_vsync().build().unwrap();
+        let canvas = window.into_canvas().accelerated().build().unwrap();
         let texture_creator = canvas.texture_creator();
-        let sdl_texture = texture_creator.create_texture(
-            PixelFormatEnum::RGBA8888,
-            sdl2::render::TextureAccess::Static,
-            self.width,
-            self.height,
-        );
-        let sdl_texture = sdl_texture.unwrap();
+        let mut sdl_texture = texture_creator
+            .create_texture_static(PixelFormatEnum::RGBA8888, self.width, self.height)
+            .unwrap();
+        sdl_texture.set_scale_mode(sdl2::render::ScaleMode::Best);
 
         let event_pump = sdl.event_pump().unwrap();
 
@@ -105,7 +103,7 @@ impl RendererState<'_, '_> {
             }
 
             self.draw();
-            self.update();
+            self.run_update_scripts();
 
             unsafe {
                 let slice =
@@ -120,7 +118,20 @@ impl RendererState<'_, '_> {
         }
     }
 
-    fn update(&mut self) {
+    // fn present(&mut self) {
+    //     unsafe {
+    //         let slice =
+    //             slice::from_raw_parts(self.image.u8_buffer(), (width * height * 4) as usize);
+    //         self.sdl_texture
+    //             .update(None, slice, (width * 4) as usize)
+    //             .unwrap();
+    //         self.canvas.copy(&self.sdl_texture, None, None).unwrap();
+    //         self.canvas.present();
+    //     }
+    //     self.canvas.present();
+    // }
+
+    fn run_update_scripts(&mut self) {
         for entity in &mut self.scene.entities {
             let ptr = entity as *mut Entity;
             for script in &mut entity.scripts {
