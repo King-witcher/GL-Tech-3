@@ -3,7 +3,7 @@ use gltech::{prelude::*, Entity, Plane, Scene, Script, Texture};
 
 use crate::file_system::load_file_system;
 
-// This commit: 31.1 fps
+// This commit: 67 fps (map nearest)
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = load_file_system()?;
     let bianca = file_system.get("bianca.jpg")?;
@@ -22,7 +22,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut engine = engine::init()?;
-    engine.title("Map Pixel Benchmark");
+    engine
+        .title("Map Pixel Benchmark")
+        .resolution(1600, 900)
+        .vsync(false);
     engine.launch(scene)?;
 
     Ok(())

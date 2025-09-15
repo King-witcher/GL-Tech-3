@@ -43,7 +43,7 @@ impl Texture {
     }
 
     #[inline]
-    pub fn map_flat(&self, u: f32, v: f32) -> Color {
+    pub fn map_nearest(&self, u: f32, v: f32) -> Color {
         let x = self.source.widthf * (self.hrepeat * u + self.hoffset) % self.source.widthf;
         let y = self.source.heightf * (self.vrepeat * v + self.voffset) % self.source.heightf;
         let x = x as u32;
