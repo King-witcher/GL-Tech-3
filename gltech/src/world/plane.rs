@@ -3,13 +3,13 @@ use crate::prelude::*;
 
 use crate::world::Entity;
 
-pub struct Plane<'a> {
+pub struct Plane {
     pub segment: Ray,
-    pub texture: Texture<'a>,
+    pub texture: Texture,
 }
 
-impl<'a> Plane<'a> {
-    pub fn new(start: Vector, dir: Vector, texture: Texture<'a>) -> Self {
+impl Plane {
+    pub fn new(start: Vector, dir: Vector, texture: Texture) -> Self {
         Self {
             segment: Ray::new(start, dir),
             texture,
@@ -22,7 +22,7 @@ impl<'a> Plane<'a> {
     }
 }
 
-impl Spatial for Plane<'_> {
+impl Spatial for Plane {
     #[inline]
     fn pos(&self) -> Vector {
         self.segment.start
@@ -49,14 +49,14 @@ impl Spatial for Plane<'_> {
     }
 }
 
-impl<'a> From<Plane<'a>> for Entity<'a> {
+impl From<Plane> for Entity {
     #[inline]
-    fn from(plane: Plane<'a>) -> Self {
+    fn from(plane: Plane) -> Self {
         Entity::from_plane(plane)
     }
 }
 
-impl std::fmt::Display for Plane<'_> {
+impl std::fmt::Display for Plane {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Plane <{}, {}>", self.segment.start, self.segment.end())
     }

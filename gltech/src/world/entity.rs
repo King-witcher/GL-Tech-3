@@ -2,40 +2,39 @@ use crate::prelude::*;
 use crate::scripting::script::Script;
 use crate::world::Plane;
 
-pub struct Entity<'a> {
+pub struct Entity {
     pos: Vector,
     dir: Vector,
 
     // One entity owns its planes and children and is responsible for dropping them when it goes out of scope.
     // The Scene will hold references to the planes for rendering and collision detection.
-    pub(crate) planes: Vec<*mut Plane<'a>>,
-    pub(crate) _children: Vec<*mut Entity<'a>>,
-    pub(crate) scripts: Vec<Box<dyn Script>>,
+    planes: Vec<Plane>,
+    // pub(crate) _children: Vec<*mut Entity<'a>>,
+    scripts: Vec<Box<dyn Script>>,
 }
 
-impl<'a> Entity<'a> {
+impl Entity {
     pub fn new(position: Vector) -> Self {
         Self {
             pos: position,
             dir: Vector::forward(),
             planes: Vec::new(),
-            _children: Vec::new(),
+            // _children: Vec::new(),
             scripts: Vec::new(),
         }
     }
 
     /// Creates a new EntityNode from a Plane.
     /// The position of the EntityNode is set to the center of the Plane.
-    pub fn from_plane(plane: Plane<'a>) -> Self {
+    pub fn from_plane(plane: Plane) -> Self {
         let pos = plane.segment.start + plane.segment.dir * 0.5;
         let dir = plane.dir();
-        let ptr = Box::into_raw(Box::new(plane));
 
         Self {
             pos,
             dir,
-            planes: vec![ptr],
-            _children: Vec::new(),
+            planes: vec![plane],
+            // _children: Vec::new(),
             scripts: Vec::new(),
         }
     }
@@ -44,13 +43,16 @@ impl<'a> Entity<'a> {
         self.scripts.push(script);
     }
 
-    pub fn add_plane(&mut self, plane: Plane<'a>) {
-        let ptr = Box::into_raw(Box::new(plane));
-        self.planes.push(ptr);
+    pub fn add_plane(&mut self, plane: Plane) {
+        self.planes.push(plane);
     }
 
     pub fn add_child(&mut self, _child: Entity) {
         todo!()
+    }
+
+    pub(crate) fn planes(&self) -> impl Iterator<Item = &Plane> {
+        self.planes.iter()
     }
 
     pub(crate) fn scripts_mut(&mut self) -> impl Iterator<Item = &mut Box<dyn Script>> + use<'_> {
@@ -58,23 +60,7 @@ impl<'a> Entity<'a> {
     }
 }
 
-impl Drop for Entity<'_> {
-    fn drop(&mut self) {
-        for &plane_ptr in &self.planes {
-            unsafe {
-                let _ = Box::from_raw(plane_ptr);
-            }
-        }
-
-        for &child_ptr in &self._children {
-            unsafe {
-                let _ = Box::from_raw(child_ptr);
-            }
-        }
-    }
-}
-
-impl Spatial for Entity<'_> {
+impl Spatial for Entity {
     #[inline]
     fn pos(&self) -> Vector {
         self.pos
@@ -82,11 +68,8 @@ impl Spatial for Entity<'_> {
 
     fn set_pos(&mut self, pos: Vector) {
         let delta = pos - self.pos;
-        for &plane_ptr in &self.planes {
-            unsafe {
-                let plane = plane_ptr.as_mut().unwrap();
-                plane.segment.start = plane.segment.start + delta;
-            }
+        for plane in &mut self.planes {
+            plane.segment.start = plane.segment.start + delta;
         }
         self.pos = pos
     }
@@ -97,11 +80,8 @@ impl Spatial for Entity<'_> {
 
     fn set_dir(&mut self, value: Vector) {
         let factor = value.cdiv(self.dir);
-        for &plane_ptr in &self.planes {
-            unsafe {
-                let plane = plane_ptr.as_mut().unwrap();
-                plane.segment.dir = plane.segment.dir.cmul(factor);
-            }
+        for plane in &mut self.planes {
+            plane.segment.dir = plane.segment.dir.cmul(factor);
         }
         self.dir = value;
     }
@@ -112,11 +92,8 @@ impl Spatial for Entity<'_> {
 
     fn translate(&mut self, delta: Vector) {
         self.pos = self.pos + delta;
-        for &plane_ptr in &self.planes {
-            unsafe {
-                let plane = plane_ptr.as_mut().unwrap();
-                plane.segment.start = plane.segment.start + delta;
-            }
+        for plane in &mut self.planes {
+            plane.segment.start = plane.segment.start + delta;
         }
     }
 }

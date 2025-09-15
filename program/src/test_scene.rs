@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use gltech::{
     engine,
     prelude::*,
@@ -12,11 +14,12 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
     let bianca = file_system.get("bianca.jpg")?;
     let image = images::get_from_file(bianca)?;
+    let image = Rc::new(image);
     let mut scene = Scene::new();
 
     // Rotating plane 1
     {
-        let texture = Texture::new(&image);
+        let texture = Texture::new(image.clone());
         let primitive = Plane::new(Vector(1.0, -0.25), Vector(1.0, 0.0), texture);
         let mut entity = Entity::from_plane(primitive);
         entity.add_script(Box::new(RotateScript));
@@ -24,7 +27,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // Rotating plane 2
     {
-        let texture = Texture::new(&image);
+        let texture = Texture::new(image.clone());
         let primitive = Plane::new(Vector(1.0, 0.25), Vector(0.0, 1.0), texture);
         let mut entity = Entity::from_plane(primitive);
         entity.add_script(Box::new(RotateScript));
@@ -32,11 +35,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut engine = engine::init()?;
-    engine
-        .fullscreen(false)
-        .title("GLTech 3")
-        .vsync(false)
-        .resolution(800, 450);
+    engine.fullscreen(false).title("GLTech 3").vsync(false);
 
     engine.launch(scene)?;
 

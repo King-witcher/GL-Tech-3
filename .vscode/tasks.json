@@ -10,7 +10,7 @@
       ],
       "icon": {
         "color": "terminal.ansiGreen",
-        "id": "bug"
+        "id": "debug"
       },
       "group": {
         "kind": "build",

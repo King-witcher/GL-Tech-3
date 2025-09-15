@@ -1,15 +1,18 @@
+use std::rc::Rc;
+
 use crate::imaging::{Color, Image};
 
-pub struct Texture<'a> {
-    source: &'a Image,
+#[derive(Clone)]
+pub struct Texture {
+    source: Rc<Image>,
     hoffset: f32,
     voffset: f32,
     hrepeat: f32,
     vrepeat: f32,
 }
 
-impl<'a> Texture<'a> {
-    pub fn new(source: &'a Image) -> Self {
+impl Texture {
+    pub fn new(source: Rc<Image>) -> Self {
         Self {
             source,
             hoffset: 0.0,
@@ -17,11 +20,6 @@ impl<'a> Texture<'a> {
             hrepeat: 1.0,
             vrepeat: 1.0,
         }
-    }
-
-    #[inline]
-    pub fn source(&self) -> &Image {
-        self.source
     }
 
     #[inline]
@@ -45,21 +43,21 @@ impl<'a> Texture<'a> {
     }
 
     #[inline]
-    pub fn map_flat(&self, x: f32, y: f32) -> Color {
-        let x = self.source.widthf * (self.hrepeat * x + self.hoffset) % self.source.widthf;
-        let y = self.source.heightf * (self.vrepeat * y + self.voffset) % self.source.heightf;
+    pub fn map_flat(&self, u: f32, v: f32) -> Color {
+        let x = self.source.widthf * (self.hrepeat * u + self.hoffset) % self.source.widthf;
+        let y = self.source.heightf * (self.vrepeat * v + self.voffset) % self.source.heightf;
         let x = x as u32;
         let y = y as u32;
         self.source.get(x, y)
     }
 
     #[inline]
-    pub fn map_bilinear(&self, x: f32, y: f32) -> Color {
+    pub fn map_bilinear(&self, u: f32, v: f32) -> Color {
         let wf = self.source.widthf - 1.0;
         let hf = self.source.heightf - 1.0;
 
-        let x = wf * (self.hrepeat * x + self.hoffset) % wf;
-        let y = hf * (self.vrepeat * y + self.voffset) % hf;
+        let x = wf * (self.hrepeat * u + self.hoffset) % wf;
+        let y = hf * (self.vrepeat * v + self.voffset) % hf;
 
         let x0 = x as u32;
         let y0 = y as u32;

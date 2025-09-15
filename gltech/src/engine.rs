@@ -133,7 +133,7 @@ impl Engine {
                 let display_mode = self.video.current_display_mode(0)?;
                 Ok((display_mode.w as u32, display_mode.h as u32))
             } else {
-                Ok((1366, 768))
+                Ok((1600, 900))
             }
         }
     }

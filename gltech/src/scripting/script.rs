@@ -4,7 +4,7 @@ use crate::world::Entity;
 
 pub struct StartContext;
 pub struct UpdateContext<'a> {
-    pub entity: &'a mut Entity<'a>,
+    pub entity: &'a mut Entity,
     pub time: Duration,
     pub delta_time: Duration,
 }
