@@ -5,10 +5,11 @@ extern crate zip;
 
 mod file_system;
 mod images;
+mod map_pixel_benchmark;
 mod test_scene;
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let result = test_scene::main();
+    let result = map_pixel_benchmark::main();
     if let Err(e) = result {
         eprintln!("Error: {}", e);
         eprintln!("Caused by: {:?}", e);
