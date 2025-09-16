@@ -1,9 +1,9 @@
-use std::{alloc::Layout, ptr::NonNull};
+use std::{alloc::Layout, sync::Arc};
 
 use crate::imaging::Color;
 
 pub struct Image {
-    buffer: NonNull<Color>,
+    buffer: Arc<Color>,
     width: u32,
     height: u32,
     pub(crate) widthf: f32,
@@ -19,7 +19,7 @@ impl Image {
 
         let buffer = unsafe {
             let ptr = std::alloc::alloc(layout) as *mut Color;
-            NonNull::new_unchecked(ptr)
+            Arc::from_raw(ptr)
         };
 
         Self {
@@ -31,15 +31,13 @@ impl Image {
         }
     }
 
-    pub(crate) fn from_raw_parts(buffer: *const u32, width: u32, height: u32) -> Self {
-        unsafe {
-            Self {
-                buffer: NonNull::new(buffer as *mut Color).unwrap_unchecked(),
-                width,
-                height,
-                widthf: width as f32,
-                heightf: height as f32,
-            }
+    pub fn cheap_clone(&self) -> Self {
+        Self {
+            buffer: self.buffer.clone(),
+            width: self.width,
+            height: self.height,
+            widthf: self.widthf,
+            heightf: self.heightf,
         }
     }
 
@@ -64,19 +62,24 @@ impl Image {
 
     #[inline]
     pub(crate) fn u32_buffer(&self) -> *mut u32 {
-        self.buffer.as_ptr() as *mut u32
+        self.buffer.as_ref() as *const Color as *mut u32
+    }
+
+    #[inline]
+    pub(crate) unsafe fn buffer(&self) -> *mut Color {
+        self.buffer.as_ref() as *const Color as *mut Color
     }
 
     #[inline]
     pub(crate) fn u8_buffer(&self) -> *mut u8 {
-        self.buffer.as_ptr() as *mut u8
+        self.buffer.as_ref() as *const Color as *mut u8
     }
 
     #[inline]
     pub fn get(&self, x: u32, y: u32) -> Color {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
-            let mut buffer = self.buffer.as_ptr();
+            let mut buffer = self.buffer();
             buffer = buffer.add(index);
             *buffer
         }
@@ -86,7 +89,7 @@ impl Image {
     pub(crate) fn set_unsafe(&self, x: u32, y: u32, value: Color) {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
-            let mut buffer = self.buffer.as_ptr();
+            let mut buffer = self.buffer();
             buffer = buffer.add(index);
             *buffer = value;
         }
@@ -96,7 +99,7 @@ impl Image {
     pub fn set(&self, x: u32, y: u32, value: Color) {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
-            let mut buffer = self.buffer.as_ptr();
+            let mut buffer = self.buffer();
             buffer = buffer.add(index);
             *buffer = value;
         }
@@ -107,11 +110,11 @@ impl Image {
     }
 }
 
-impl Drop for Image {
-    fn drop(&mut self) {
-        let layout = Layout::array::<Color>((self.width * self.height) as usize).unwrap();
-        unsafe {
-            std::alloc::dealloc(self.buffer.as_ptr() as *mut u8, layout);
-        }
-    }
-}
+// impl Drop for Image {
+//     fn drop(&mut self) {
+//         let layout = Layout::array::<Color>((self.width * self.height) as usize).unwrap();
+//         unsafe {
+//             std::alloc::dealloc(self.u8_buffer(), layout);
+//         }
+//     }
+// }

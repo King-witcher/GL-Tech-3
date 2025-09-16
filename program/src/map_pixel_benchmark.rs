@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use gltech::scripting::UpdateContext;
 use gltech::{prelude::*, Entity, Plane, Scene, Script, Texture};
 
@@ -10,7 +8,6 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = load_file_system()?;
     let bianca = file_system.get("bmp.bmp")?;
     let image = crate::images::get_from_file(bianca)?;
-    let image = Arc::new(image);
     let mut scene = Scene::new();
 
     // Plane
@@ -26,8 +23,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut engine = engine::init()?;
     engine
         .title("Map Pixel Benchmark")
-        .resolution(1600, 900)
-        // .fullscreen(true)
+        .resolution(1920, 1080)
+        .fullscreen(true)
         .vsync(false);
     engine.launch(scene)?;
 

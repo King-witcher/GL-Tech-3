@@ -1,10 +1,7 @@
-use std::sync::Arc;
-
 use crate::imaging::{Color, Image};
 
-#[derive(Clone)]
 pub struct Texture {
-    source: Arc<Image>,
+    source: Image,
     hoffset: f32,
     voffset: f32,
     hrepeat: f32,
@@ -12,7 +9,7 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(source: Arc<Image>) -> Self {
+    pub fn new(source: Image) -> Self {
         Self {
             source,
             hoffset: 0.0,
