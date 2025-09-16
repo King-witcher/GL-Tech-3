@@ -2,7 +2,7 @@ use std::{slice, time::Duration};
 
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
-use crate::{Entity, Scene, renderer, scripting::UpdateContext};
+use crate::{Entity, Ray, Scene, Spatial, renderer, scripting::UpdateContext};
 
 pub struct Engine {
     borderless: bool,
@@ -72,7 +72,13 @@ impl Engine {
                 break;
             }
 
-            renderer::draw_scene(&scene, &mut gltech_image);
+            let camera = Ray {
+                start: scene.camera.pos(),
+                dir: scene.camera.dir(),
+            };
+
+            let planes: Vec<&crate::Plane> = scene.planes().collect();
+            renderer::draw_planes(camera, planes, &mut gltech_image);
 
             let slice =
                 unsafe { slice::from_raw_parts(gltech_image.u8_buffer(), gltech_image.size()) };

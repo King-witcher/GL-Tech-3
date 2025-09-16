@@ -1,10 +1,10 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::imaging::{Color, Image};
 
 #[derive(Clone)]
 pub struct Texture {
-    source: Rc<Image>,
+    source: Arc<Image>,
     hoffset: f32,
     voffset: f32,
     hrepeat: f32,
@@ -12,7 +12,7 @@ pub struct Texture {
 }
 
 impl Texture {
-    pub fn new(source: Rc<Image>) -> Self {
+    pub fn new(source: Arc<Image>) -> Self {
         Self {
             source,
             hoffset: 0.0,
@@ -44,10 +44,11 @@ impl Texture {
 
     #[inline]
     pub fn map_nearest(&self, u: f32, v: f32) -> Color {
-        let x = self.source.widthf * (self.hrepeat * u + self.hoffset) % self.source.widthf;
-        let y = self.source.heightf * (self.vrepeat * v + self.voffset) % self.source.heightf;
-        let x = x as u32;
-        let y = y as u32;
+        let x =
+            (self.source.widthf * (self.hrepeat * u + self.hoffset)) as u32 % self.source.width();
+        let y =
+            (self.source.heightf * (self.vrepeat * v + self.voffset)) as u32 % self.source.height();
+
         self.source.get(x, y)
     }
 

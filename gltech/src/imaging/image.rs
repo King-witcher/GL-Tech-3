@@ -10,6 +10,9 @@ pub struct Image {
     pub(crate) heightf: f32,
 }
 
+unsafe impl Send for Image {}
+unsafe impl Sync for Image {}
+
 impl Image {
     pub fn new(width: u32, height: u32) -> Self {
         let layout = Layout::array::<Color>((width * height) as usize).unwrap();
@@ -25,6 +28,18 @@ impl Image {
             height,
             widthf: width as f32,
             heightf: height as f32,
+        }
+    }
+
+    pub(crate) fn from_raw_parts(buffer: *const u32, width: u32, height: u32) -> Self {
+        unsafe {
+            Self {
+                buffer: NonNull::new(buffer as *mut Color).unwrap_unchecked(),
+                width,
+                height,
+                widthf: width as f32,
+                heightf: height as f32,
+            }
         }
     }
 
@@ -68,6 +83,16 @@ impl Image {
     }
 
     #[inline]
+    pub(crate) fn set_unsafe(&self, x: u32, y: u32, value: Color) {
+        let index: usize = (x + self.width * y) as usize;
+        unsafe {
+            let mut buffer = self.buffer.as_ptr();
+            buffer = buffer.add(index);
+            *buffer = value;
+        }
+    }
+
+    #[inline]
     pub fn set(&self, x: u32, y: u32, value: Color) {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
@@ -75,6 +100,10 @@ impl Image {
             buffer = buffer.add(index);
             *buffer = value;
         }
+    }
+
+    pub fn coordinates(&self) -> impl Iterator<Item = (u32, u32)> {
+        (0..self.height).flat_map(move |y| (0..self.width).map(move |x| (x, y)))
     }
 }
 

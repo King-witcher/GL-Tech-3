@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 use gltech::{
     engine,
@@ -14,7 +14,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
     let bianca = file_system.get("bianca.jpg")?;
     let image = images::get_from_file(bianca)?;
-    let image = Rc::new(image);
+    let image = Arc::new(image);
     let mut scene = Scene::new();
 
     // Rotating plane 1
