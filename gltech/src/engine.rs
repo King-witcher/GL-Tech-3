@@ -1,8 +1,12 @@
-use std::{slice, time::Duration};
+use std::time::Duration;
 
-use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
+use sdl2::{
+    pixels::PixelFormatEnum,
+    render::TextureCreator,
+    sys::{SDL_RenderCopy, SDL_RenderPresent, SDL_UpdateTexture},
+};
 
-use crate::{Entity, Ray, Scene, Spatial, renderer, scripting::UpdateContext};
+use crate::{Entity, Ray, Scene, Spatial, renderer, scripting::UpdateContext, sdl::Window};
 
 pub struct Engine {
     borderless: bool,
@@ -56,21 +60,23 @@ impl Engine {
     }
 
     pub fn launch(self, mut scene: Scene) -> Result<(), String> {
-        let window = self.create_window()?;
-        let mut canvas = self.create_canvas(window)?;
-        let texture_creator = canvas.texture_creator();
-        let mut screen_texture = self.create_texture(&texture_creator)?;
-        let mut event_pump = self.sdl.event_pump()?;
-        let (width, height) = self.get_resolution()?;
-        let mut gltech_image = crate::Image::new(width, height);
+        println!("Launching engine...");
+        // let mut event_pump = self.sdl.event_pump()?;
+        // let (width, height) = self.get_resolution()?;
+        let window = Window::new(
+            &self.title,
+            1920 as _,
+            1080 as _,
+            1920 as _,
+            1080 as _,
+            self.fullscreen,
+        );
+        let mut gltech_image = window.image();
 
         let first_frame = std::time::Instant::now();
         let mut last_frame = first_frame;
         loop {
-            let quit = self.handle_events(&mut event_pump);
-            if quit {
-                break;
-            }
+            for _ in Window::events() {}
 
             let camera = Ray {
                 start: scene.camera.pos(),
@@ -80,13 +86,7 @@ impl Engine {
             let planes: Vec<&crate::Plane> = scene.planes().collect();
             renderer::draw_planes(camera, planes, &mut gltech_image);
 
-            let slice =
-                unsafe { slice::from_raw_parts(gltech_image.u8_buffer(), gltech_image.size()) };
-            screen_texture
-                .update(None, slice, (width * 4) as usize)
-                .map_err(|e| e.to_string())?;
-            canvas.copy(&screen_texture, None, None)?;
-            canvas.present();
+            window.update();
 
             let time = first_frame.elapsed();
             let delta_time = last_frame.elapsed();
@@ -96,6 +96,24 @@ impl Engine {
         }
 
         Ok(())
+    }
+
+    #[inline]
+    fn update_renderer(
+        renderer: *mut sdl2::sys::SDL_Renderer,
+        texture: *mut sdl2::sys::SDL_Texture,
+        image: crate::Image,
+    ) {
+        unsafe {
+            SDL_UpdateTexture(
+                texture,
+                std::ptr::null(),
+                image.buffer() as _,
+                image.width() as i32 * 4,
+            );
+            SDL_RenderCopy(renderer, texture, std::ptr::null(), std::ptr::null());
+            SDL_RenderPresent(renderer);
+        }
     }
 
     // TODO refactor this to avoid the horrible unsafe code
@@ -183,7 +201,7 @@ impl Engine {
             .create_texture_static(PixelFormatEnum::RGBA8888, width, height)
             .map_err(|e| e.to_string())?;
 
-        texture.set_scale_mode(sdl2::render::ScaleMode::Best);
+        texture.set_scale_mode(sdl2::render::ScaleMode::Nearest);
         Ok(texture)
     }
 }

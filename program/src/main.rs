@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 extern crate gltech;
 extern crate image;
 extern crate thiserror;
