@@ -1,9 +1,10 @@
 use std::ptr::NonNull;
+use std::time::Duration;
 
 use crate::scripting::script::Script;
 use crate::world::Plane;
 use crate::world::empty::Empty;
-use crate::{Camera, prelude::*};
+use crate::{Camera, UpdateContext, prelude::*};
 
 pub(crate) enum EntityInner {
     Empty(Empty),
@@ -12,11 +13,11 @@ pub(crate) enum EntityInner {
 }
 
 pub struct Entity {
+    pub(crate) inner: EntityInner,
+
     relative_pos: Vector,
     relative_dir: Vector,
     parent: Option<NonNull<Entity>>,
-
-    pub(crate) inner: EntityInner,
     scripts: Vec<Box<dyn Script>>,
 }
 
@@ -160,6 +161,21 @@ impl Entity {
 
     pub(crate) fn scripts_mut(&mut self) -> impl Iterator<Item = &mut Box<dyn Script>> + use<'_> {
         self.scripts.iter_mut()
+    }
+
+    pub(crate) fn update(&mut self, scene: &mut Scene, delta_time: Duration, time: Duration) {
+        let self_ptr = self as *mut Entity;
+        let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
+        for script in scripts {
+            let ctx = UpdateContext {
+                entity: unsafe { &mut *self_ptr },
+                scene,
+                time,
+                delta_time,
+            };
+
+            script.update(ctx);
+        }
     }
 }
 

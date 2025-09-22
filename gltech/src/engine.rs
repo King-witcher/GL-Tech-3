@@ -1,8 +1,6 @@
-use std::time::Duration;
-
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
-use crate::{Entity, Image, Ray, Scene, renderer, scripting::UpdateContext};
+use crate::{Image, Ray, Scene, renderer};
 
 pub struct Engine {
     borderless: bool,
@@ -81,10 +79,10 @@ impl Engine {
 
             renderer::draw_planes(camera, scene.camera.z(), planes, &mut gltech_image);
             Self::present(&mut canvas, &mut screen_texture, gltech_image.cheap_clone())?;
-            let time = first_frame.elapsed();
+            let total_time = first_frame.elapsed();
             let delta_time = last_frame.elapsed();
             last_frame = std::time::Instant::now();
-            self.update_scene(&mut scene, time, delta_time);
+            scene.update(delta_time, total_time);
         }
 
         Ok(())
@@ -103,24 +101,6 @@ impl Engine {
         canvas.copy(texture, None, None)?;
         canvas.present();
         Ok(())
-    }
-
-    // TODO refactor this to avoid the horrible unsafe code
-    fn update_scene(&self, scene: &mut Scene, time: Duration, delta_time: Duration) {
-        for entity in scene.entities_mut() {
-            let ptr = entity as *mut Entity;
-
-            let mut ctx = UpdateContext {
-                // Horrible unsafe code to get a mutable reference to the entity inside the loop
-                entity: unsafe { &mut *ptr },
-                time,
-                delta_time,
-            };
-
-            for script in entity.scripts_mut() {
-                script.update(&mut ctx);
-            }
-        }
     }
 
     fn handle_events(&self, event_pump: &mut sdl2::EventPump) -> bool {
