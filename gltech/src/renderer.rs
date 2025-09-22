@@ -5,7 +5,7 @@ use std::f32;
 
 use crate::Image;
 
-pub fn draw_planes(camera: Ray, _z: f32, planes: Vec<&Plane>, image: &Image) {
+pub fn draw_planes(camera: Ray, z: f32, planes: Vec<&Plane>, image: &Image) {
     let (width, height) = image.dimensions();
     unsafe {
         std::ptr::write_bytes(image.u32_buffer(), 0, (width * height) as usize);
@@ -29,8 +29,8 @@ pub fn draw_planes(camera: Ray, _z: f32, planes: Vec<&Plane>, image: &Image) {
         };
 
         let col_h = col_height_1 / (ray.dir.dot_product(camera_dir) * collision_r);
-        let col_start = (image.heightf - 1.0 - col_h) * 0.5;
-        let col_end = (image.heightf - 1.0 + col_h) * 0.5;
+        let col_start = (image.heightf - 1.0 - col_h) * 0.5 + col_h * (z - 0.5);
+        let col_end = (image.heightf - 1.0 + col_h) * 0.5 + col_h * (z - 0.5);
 
         let mut draw_col_start = height as i32 - (image.heightf - col_start) as i32; // Inclusive
         let mut draw_col_end = height as i32 - (image.heightf - col_end) as i32; // Exclusive
