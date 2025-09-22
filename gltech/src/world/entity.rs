@@ -159,10 +159,6 @@ impl Entity {
         self.set_dir(new_dir);
     }
 
-    pub(crate) fn scripts_mut(&mut self) -> impl Iterator<Item = &mut Box<dyn Script>> + use<'_> {
-        self.scripts.iter_mut()
-    }
-
     pub(crate) fn update(&mut self, scene: &mut Scene, delta_time: Duration, time: Duration) {
         let self_ptr = self as *mut Entity;
         let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
