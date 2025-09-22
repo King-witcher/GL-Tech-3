@@ -180,7 +180,7 @@ impl Engine {
         let (width, height) = self.get_resolution()?;
 
         let mut texture = texture_creator
-            .create_texture_static(PixelFormatEnum::RGBA8888, width, height)
+            .create_texture_static(PixelFormatEnum::ARGB8888, width, height)
             .map_err(|e| e.to_string())?;
 
         texture.set_scale_mode(sdl2::render::ScaleMode::Best);

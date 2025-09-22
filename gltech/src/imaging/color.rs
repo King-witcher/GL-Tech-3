@@ -3,37 +3,37 @@ pub struct Color(u32);
 
 impl Color {
     #[inline]
-    pub fn rgb(r: u8, g: u8, b: u8) -> Self {
-        Self(((r as u32) << 24) | ((g as u32) << 16) | ((b as u32) << 8) | 0xFF)
+    pub const fn rgb(r: u8, g: u8, b: u8) -> Self {
+        Self(((r as u32) << 16) | ((g as u32) << 8) | (b as u32))
     }
 
     #[inline]
-    pub fn u32(self) -> u32 {
+    pub const unsafe fn u32(self) -> u32 {
         self.0
     }
 
     #[inline]
-    pub fn r(self) -> u8 {
+    pub const fn r(self) -> u8 {
         (self.0 >> 24) as u8
     }
 
     #[inline]
-    pub fn g(self) -> u8 {
+    pub const fn g(self) -> u8 {
         (self.0 >> 16) as u8
     }
 
     #[inline]
-    pub fn b(self) -> u8 {
+    pub const fn b(self) -> u8 {
         (self.0 >> 8) as u8
     }
 
     #[inline]
-    pub fn a(self) -> u8 {
+    pub const fn a(self) -> u8 {
         (self.0 & 0xFF) as u8
     }
 
     #[inline]
-    pub fn luma(self) -> u8 {
+    pub const fn luma(self) -> u8 {
         let r = self.r() as f32;
         let g = self.g() as f32;
         let b = self.b() as f32;
@@ -41,7 +41,7 @@ impl Color {
     }
 
     #[inline]
-    pub fn lerp(self, other: Color, t: f32) -> Color {
+    pub const fn lerp(self, other: Color, t: f32) -> Color {
         let r = self.r() as f32 * (1.0 - t) + other.r() as f32 * t;
         let g = self.g() as f32 * (1.0 - t) + other.g() as f32 * t;
         let b = self.b() as f32 * (1.0 - t) + other.b() as f32 * t;
@@ -51,14 +51,15 @@ impl Color {
         Color::rgb(r, g, b)
     }
 
-    pub const BLACK: Color = Color(0);
-    pub const WHITE: Color = Color(0xFFFFFFFF);
-    pub const RED: Color = Color(0xFF0000FF);
-    pub const GREEN: Color = Color(0x00FF00FF);
-    pub const BLUE: Color = Color(0x0000FFFF);
-    pub const YELLOW: Color = Color(0xFFFF00FF);
-    pub const CYAN: Color = Color(0x00FFFFFF);
-    pub const MAGENTA: Color = Color(0xFF00FFFF);
+    pub const BLACK: Color = Color::rgb(0, 0, 0);
+    pub const GRAY: Color = Color::rgb(128, 128, 128);
+    pub const WHITE: Color = Color::rgb(255, 255, 255);
+    pub const RED: Color = Color::rgb(255, 0, 0);
+    pub const GREEN: Color = Color::rgb(0, 255, 0);
+    pub const BLUE: Color = Color::rgb(0, 0, 255);
+    pub const YELLOW: Color = Color::rgb(255, 255, 0);
+    pub const CYAN: Color = Color::rgb(0, 255, 255);
+    pub const MAGENTA: Color = Color::rgb(255, 0, 255);
 }
 
 impl From<u32> for Color {

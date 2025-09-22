@@ -6,10 +6,6 @@ use std::f32;
 use crate::Image;
 
 pub fn draw_planes(camera: Ray, planes: Vec<&Plane>, image: &Image) {
-    draw_planes_inner(camera, planes, image);
-}
-
-fn draw_planes_inner(camera: Ray, planes: Vec<&Plane>, image: &Image) {
     let (width, height) = image.dimensions();
     unsafe {
         std::ptr::write_bytes(image.u32_buffer(), 0, (width * height) as usize);
@@ -21,6 +17,7 @@ fn draw_planes_inner(camera: Ray, planes: Vec<&Plane>, image: &Image) {
     let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
     (0..width).into_par_iter().for_each(|col| {
+        let (width, height) = image.dimensions();
         let ray = {
             let delta = (width >> 1) as i32 - col as i32;
             let dir = camera_dir + camera_left * step0 * delta as f32;
