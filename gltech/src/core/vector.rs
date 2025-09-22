@@ -4,7 +4,7 @@ use std::{fmt::Display, ops::*};
 pub struct Vector(pub f32, pub f32);
 
 impl Vector {
-    pub fn from_angle(angle_deg: f32) -> Vector {
+    pub fn from_deg(angle_deg: f32) -> Vector {
         let rad = angle_deg * TO_RAD;
         Vector(rad.cos(), rad.sin())
     }
@@ -77,10 +77,12 @@ impl Vector {
 // Constants
 
 impl Vector {
-    #[inline]
-    pub fn forward() -> Vector {
-        Vector(1.0, 0.0)
-    }
+    pub const ZERO: Vector = Vector(0.0, 0.0);
+    pub const IDENTITY: Vector = Vector(1.0, 1.0);
+    pub const FORWARD: Vector = Vector(1.0, 0.0);
+    pub const RIGHT: Vector = Vector(0.0, 1.0);
+    pub const LEFT: Vector = Vector(-1.0, 0.0);
+    pub const BACK: Vector = Vector(0.0, -1.0);
 }
 
 impl Add for Vector {
@@ -194,13 +196,6 @@ impl From<(f32, f32)> for Vector {
         Vector(tuple.0, tuple.1)
     }
 }
-
-pub const ZERO: Vector = Vector(0.0, 0.0);
-pub const IDENTITY: Vector = Vector(1.0, 1.0);
-pub const FORWARD: Vector = Vector(0.0, 1.0);
-pub const LEFT: Vector = Vector(-1.0, 0.0);
-pub const RIGHT: Vector = Vector(1.0, 0.0);
-pub const BACK: Vector = Vector(0.0, -1.0);
 
 const TO_RAD: f32 = std::f32::consts::PI / 180.0;
 const TO_DEG: f32 = 180.0 / std::f32::consts::PI;

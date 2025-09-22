@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
-use crate::{Entity, Image, Ray, Scene, Spatial, renderer, scripting::UpdateContext};
+use crate::{Entity, Image, Ray, Scene, renderer, scripting::UpdateContext};
 
 pub struct Engine {
     borderless: bool,

@@ -14,10 +14,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let texture = Texture::new(image);
         let plane = Plane::new(Vector(0.5, 1.0), Vector(0.0, -2.0), texture);
-        let mut entity = Entity::from_plane(plane);
+        let mut entity = Entity::from(plane);
         let script = BenchmarkScript::new();
         entity.add_script(Box::new(script));
-        scene.add_node(entity);
+        scene.add(entity);
     }
 
     let mut engine = engine::init()?;

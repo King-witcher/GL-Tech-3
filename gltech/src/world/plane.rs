@@ -1,8 +1,6 @@
 use crate::imaging::Texture;
 use crate::prelude::*;
 
-use crate::world::Entity;
-
 pub struct Plane {
     pub segment: Ray,
     pub texture: Texture,
@@ -46,13 +44,6 @@ impl Spatial for Plane {
     #[inline]
     fn translate(&mut self, delta: Vector) {
         self.segment.translate(delta);
-    }
-}
-
-impl From<Plane> for Entity {
-    #[inline]
-    fn from(plane: Plane) -> Self {
-        Entity::from_plane(plane)
     }
 }
 

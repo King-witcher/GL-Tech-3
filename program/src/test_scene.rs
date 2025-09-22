@@ -1,5 +1,3 @@
-use std::{rc::Rc, sync::Arc};
-
 use gltech::{
     engine,
     prelude::*,
@@ -20,17 +18,17 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         let texture = Texture::new(image.cheap_clone());
         let primitive = Plane::new(Vector(1.0, -0.25), Vector(1.0, 0.0), texture);
-        let mut entity = Entity::from_plane(primitive);
+        let mut entity = Entity::from(primitive);
         entity.add_script(Box::new(RotateScript));
-        scene.add_node(entity);
+        scene.add(entity);
     }
     // Rotating plane 2
     {
         let texture = Texture::new(image);
         let primitive = Plane::new(Vector(1.0, 0.25), Vector(0.0, 1.0), texture);
-        let mut entity = Entity::from_plane(primitive);
+        let mut entity = Entity::from(primitive);
         entity.add_script(Box::new(RotateScript));
-        scene.add_node(entity);
+        scene.add(entity);
     }
 
     let mut engine = engine::init()?;

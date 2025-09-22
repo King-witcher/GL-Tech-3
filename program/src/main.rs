@@ -9,7 +9,7 @@ mod map_pixel_benchmark;
 mod test_scene;
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let result = map_pixel_benchmark::main();
+    let result = test_scene::main();
     if let Err(e) = result {
         eprintln!("Error: {}", e);
         eprintln!("Caused by: {:?}", e);

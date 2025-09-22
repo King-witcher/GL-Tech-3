@@ -13,7 +13,7 @@ pub trait Spatial {
     }
     #[inline]
     fn set_angle(&mut self, angle: f32) {
-        let trans = Vector::from_angle(angle);
+        let trans = Vector::from_deg(angle);
         let dir = self.dir();
         self.set_dir(dir.cmul(trans));
     }
@@ -30,7 +30,7 @@ pub trait Spatial {
     }
     #[inline]
     fn rotate(&mut self, angle: f32) {
-        let trans = Vector::from_angle(angle);
+        let trans = Vector::from_deg(angle);
         let dir = self.dir();
         self.set_dir(dir.cmul(trans));
     }

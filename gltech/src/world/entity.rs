@@ -1,58 +1,147 @@
-use crate::prelude::*;
+use std::ptr::NonNull;
+
 use crate::scripting::script::Script;
 use crate::world::Plane;
+use crate::world::empty::Empty;
+use crate::{Camera, prelude::*};
+
+pub(crate) enum EntityInner {
+    Empty(Empty),
+    Plane(Plane),
+    Camera(Camera),
+}
 
 pub struct Entity {
-    pos: Vector,
-    dir: Vector,
+    relative_pos: Vector,
+    relative_dir: Vector,
+    parent: Option<NonNull<Entity>>,
 
-    // One entity owns its planes and children and is responsible for dropping them when it goes out of scope.
-    // The Scene will hold references to the planes for rendering and collision detection.
-    planes: Vec<Plane>,
-    // pub(crate) _children: Vec<*mut Entity<'a>>,
+    pub(crate) inner: EntityInner,
     scripts: Vec<Box<dyn Script>>,
 }
 
 impl Entity {
-    pub fn new(position: Vector) -> Self {
-        Self {
-            pos: position,
-            dir: Vector::forward(),
-            planes: Vec::new(),
-            // _children: Vec::new(),
-            scripts: Vec::new(),
-        }
-    }
-
-    /// Creates a new EntityNode from a Plane.
-    /// The position of the EntityNode is set to the center of the Plane.
-    pub fn from_plane(plane: Plane) -> Self {
-        let pos = plane.segment.start + plane.segment.dir * 0.5;
-        let dir = plane.dir();
-
-        Self {
-            pos,
-            dir,
-            planes: vec![plane],
-            // _children: Vec::new(),
-            scripts: Vec::new(),
-        }
-    }
-
     pub fn add_script(&mut self, script: Box<dyn Script>) {
         self.scripts.push(script);
     }
 
-    pub fn add_plane(&mut self, plane: Plane) {
-        self.planes.push(plane);
+    fn inner_pos(&self) -> Vector {
+        match self.inner {
+            EntityInner::Empty(ref empty) => empty.pos,
+            EntityInner::Plane(ref plane) => plane.pos(),
+            EntityInner::Camera(ref camera) => camera.pos,
+        }
     }
 
-    pub fn add_child(&mut self, _child: Entity) {
-        todo!()
+    fn inner_dir(&self) -> Vector {
+        match self.inner {
+            EntityInner::Empty(ref empty) => empty.dir,
+            EntityInner::Plane(ref plane) => plane.dir(),
+            EntityInner::Camera(ref camera) => camera.dir,
+        }
     }
 
-    pub(crate) fn planes(&self) -> impl Iterator<Item = &Plane> {
-        self.planes.iter()
+    fn set_inner_pos(&mut self, pos: impl Into<Vector>) {
+        match self.inner {
+            EntityInner::Empty(ref mut empty) => {
+                empty.pos = pos.into();
+            }
+            EntityInner::Plane(ref mut plane) => {
+                plane.segment.start = pos.into();
+            }
+            EntityInner::Camera(ref mut camera) => {
+                camera.pos = pos.into();
+            }
+        }
+    }
+
+    fn set_inner_dir(&mut self, dir: impl Into<Vector>) {
+        match self.inner {
+            EntityInner::Empty(ref mut empty) => {
+                empty.dir = dir.into();
+            }
+            EntityInner::Plane(ref mut plane) => {
+                plane.segment.dir = dir.into();
+            }
+            EntityInner::Camera(ref mut camera) => {
+                camera.dir = dir.into();
+            }
+        }
+    }
+
+    fn follow_parent(&mut self) {
+        match self.parent {
+            Some(_) => {
+                todo!()
+            }
+            None => {}
+        }
+    }
+
+    pub fn pos(&self) -> Vector {
+        if self.parent.is_none() {
+            self.inner_pos()
+        } else {
+            self.relative_pos
+        }
+    }
+
+    pub fn dir(&self) -> Vector {
+        if self.parent.is_none() {
+            self.inner_dir()
+        } else {
+            self.relative_dir
+        }
+    }
+
+    pub fn angle(&self) -> f32 {
+        self.dir().angle()
+    }
+
+    pub fn set_pos(&mut self, pos: impl Into<Vector>) {
+        match self.parent {
+            Some(_) => {
+                self.relative_pos = pos.into();
+                self.follow_parent();
+            }
+            None => {
+                self.set_inner_pos(pos.into());
+            }
+        }
+    }
+
+    pub fn set_dir(&mut self, dir: impl Into<Vector>) {
+        match self.parent {
+            Some(_) => {
+                self.relative_dir = dir.into();
+                self.follow_parent();
+            }
+            None => {
+                self.set_inner_dir(dir.into());
+            }
+        }
+    }
+
+    pub fn set_angle(&mut self, angle: f32) {
+        let new_dir = Vector::from_deg(angle);
+        self.set_dir(new_dir);
+    }
+
+    pub fn translate(&mut self, delta: impl Into<Vector>) {
+        let new_pos = self.pos() + delta.into();
+        self.set_pos(new_pos);
+    }
+
+    pub fn transform(&mut self, transformation: impl Into<Vector>) {
+        let dir = self.dir();
+        let new_dir = dir.cmul(transformation.into());
+        self.set_dir(new_dir);
+    }
+
+    pub fn rotate(&mut self, angle: f32) {
+        let dir = self.dir();
+        let new_dir = dir.cmul(Vector::from_deg(angle));
+        self.set_dir(new_dir);
     }
 
     pub(crate) fn scripts_mut(&mut self) -> impl Iterator<Item = &mut Box<dyn Script>> + use<'_> {
@@ -60,40 +149,41 @@ impl Entity {
     }
 }
 
-impl Spatial for Entity {
-    #[inline]
-    fn pos(&self) -> Vector {
-        self.pos
-    }
+impl From<Plane> for Entity {
+    fn from(plane: Plane) -> Self {
+        let pos = plane.segment.start + plane.segment.dir * 0.5;
+        let dir = plane.dir();
 
-    fn set_pos(&mut self, pos: Vector) {
-        let delta = pos - self.pos;
-        for plane in &mut self.planes {
-            plane.segment.start = plane.segment.start + delta;
+        Self {
+            relative_pos: pos,
+            relative_dir: dir,
+            parent: None,
+            inner: EntityInner::Plane(plane),
+            scripts: Vec::new(),
         }
-        self.pos = pos
     }
+}
 
-    fn dir(&self) -> Vector {
-        self.dir
-    }
-
-    fn set_dir(&mut self, value: Vector) {
-        let factor = value.cdiv(self.dir);
-        for plane in &mut self.planes {
-            plane.segment.dir = plane.segment.dir.cmul(factor);
+impl From<Empty> for Entity {
+    fn from(empty: Empty) -> Self {
+        Self {
+            relative_pos: empty.pos,
+            relative_dir: empty.dir,
+            parent: None,
+            inner: EntityInner::Empty(empty),
+            scripts: Vec::new(),
         }
-        self.dir = value;
     }
+}
 
-    fn angle(&self) -> f32 {
-        self.dir.angle()
-    }
-
-    fn translate(&mut self, delta: Vector) {
-        self.pos = self.pos + delta;
-        for plane in &mut self.planes {
-            plane.segment.start = plane.segment.start + delta;
+impl From<Camera> for Entity {
+    fn from(camera: Camera) -> Self {
+        Self {
+            relative_pos: camera.pos,
+            relative_dir: camera.dir,
+            parent: None,
+            inner: EntityInner::Camera(camera),
+            scripts: Vec::new(),
         }
     }
 }
