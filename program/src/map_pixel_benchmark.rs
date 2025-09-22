@@ -3,7 +3,7 @@ use gltech::{prelude::*, Entity, Plane, Scene, Script, Texture};
 
 use crate::file_system::load_file_system;
 
-// This commit: 67 fps (map nearest)
+// This commit: 300 fps (map nearest)
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = load_file_system()?;
     let bianca = file_system.get("bmp.bmp")?;
