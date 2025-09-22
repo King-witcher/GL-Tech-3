@@ -81,12 +81,10 @@ impl Engine {
 
             renderer::draw_planes(camera, planes, &mut gltech_image);
             Self::present(&mut canvas, &mut screen_texture, gltech_image.cheap_clone())?;
-
             let time = first_frame.elapsed();
             let delta_time = last_frame.elapsed();
-
-            self.update_scene(&mut scene, time, delta_time);
             last_frame = std::time::Instant::now();
+            self.update_scene(&mut scene, time, delta_time);
         }
 
         Ok(())
