@@ -5,7 +5,7 @@ use std::f32;
 
 use crate::Image;
 
-pub fn draw_planes(camera: Ray, planes: Vec<&Plane>, image: &Image) {
+pub fn draw_planes(camera: Ray, _z: f32, planes: Vec<&Plane>, image: &Image) {
     let (width, height) = image.dimensions();
     unsafe {
         std::ptr::write_bytes(image.u32_buffer(), 0, (width * height) as usize);

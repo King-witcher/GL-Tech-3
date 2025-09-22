@@ -12,7 +12,7 @@ impl Default for Camera {
         Self {
             pos: Vector::ZERO,
             dir: Vector::FORWARD,
-            z: 0.0,
+            z: 0.5,
             fov: 110.0,
         }
     }

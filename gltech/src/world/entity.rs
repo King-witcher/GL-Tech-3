@@ -98,6 +98,14 @@ impl Entity {
         self.dir().angle()
     }
 
+    pub fn z(&self) -> f32 {
+        if let EntityInner::Camera(camera) = &self.inner {
+            camera.z
+        } else {
+            0.0
+        }
+    }
+
     pub fn set_pos(&mut self, pos: impl Into<Vector>) {
         match self.parent {
             Some(_) => {
@@ -125,6 +133,12 @@ impl Entity {
     pub fn set_angle(&mut self, angle: f32) {
         let new_dir = Vector::from_deg(angle);
         self.set_dir(new_dir);
+    }
+
+    pub fn set_z(&mut self, z: f32) {
+        if let EntityInner::Camera(camera) = &mut self.inner {
+            camera.z = z;
+        }
     }
 
     pub fn translate(&mut self, delta: impl Into<Vector>) {

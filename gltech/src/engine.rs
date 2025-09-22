@@ -79,7 +79,7 @@ impl Engine {
 
             let planes: Vec<&crate::Plane> = scene.planes().collect();
 
-            renderer::draw_planes(camera, planes, &mut gltech_image);
+            renderer::draw_planes(camera, scene.camera.z(), planes, &mut gltech_image);
             Self::present(&mut canvas, &mut screen_texture, gltech_image.cheap_clone())?;
             let time = first_frame.elapsed();
             let delta_time = last_frame.elapsed();
