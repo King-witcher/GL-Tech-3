@@ -39,12 +39,12 @@ impl Scene {
             })
     }
 
-    pub(crate) fn update(&mut self, delta_time: Duration, time: Duration) {
+    pub(crate) fn update(&mut self) {
         let ptr = self as *mut Scene;
         let current_entities = self.entities_mut().collect::<Vec<_>>();
         for entity in current_entities {
             let second_ref = unsafe { &mut *ptr };
-            entity.update(second_ref, delta_time, time);
+            entity.update(second_ref);
         }
     }
 

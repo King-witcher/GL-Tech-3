@@ -1,6 +1,9 @@
+use super::renderer;
+use crate::engine::time;
+use crate::sdl::*;
+use crate::{Image, Ray, Scene};
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
-
-use crate::{Image, Ray, Scene, renderer};
+use std::rc::Rc;
 
 pub struct Engine {
     borderless: bool,
@@ -60,13 +63,11 @@ impl Engine {
         let mut screen_texture = self.create_texture(&texture_creator)?;
         let mut event_pump = self.sdl.event_pump()?;
         let (width, height) = self.get_resolution()?;
-        let mut gltech_image = crate::Image::new(width, height);
-
-        let first_frame = std::time::Instant::now();
-        let mut last_frame = first_frame;
+        let mut gltech_surface = crate::Image::new(width, height);
+        time::init_time();
         loop {
-            let quit = self.handle_events(&mut event_pump);
-            if quit {
+            let (_events, should_quit) = self.collect_events(&mut event_pump);
+            if should_quit {
                 break;
             }
 
@@ -77,13 +78,17 @@ impl Engine {
 
             let planes: Vec<&crate::Plane> = scene.planes().collect();
 
-            renderer::draw_planes(camera, scene.camera.z(), planes, &mut gltech_image);
-            Self::present(&mut canvas, &mut screen_texture, gltech_image.cheap_clone())?;
-            let total_time = first_frame.elapsed();
-            let delta_time = last_frame.elapsed();
-            last_frame = std::time::Instant::now();
-            scene.update(delta_time, total_time);
+            renderer::draw_planes(camera, scene.camera.z(), planes, &mut gltech_surface);
+            Self::present(
+                &mut canvas,
+                &mut screen_texture,
+                gltech_surface.cheap_clone(),
+            )?;
+
+            scene.update();
+            time::reset_frame();
         }
+        time::clear_time();
 
         Ok(())
     }
@@ -103,19 +108,13 @@ impl Engine {
         Ok(())
     }
 
-    fn handle_events(&self, event_pump: &mut sdl2::EventPump) -> bool {
-        for event in event_pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit { .. } => return true,
-                sdl2::event::Event::KeyDown { keycode, .. } => {
-                    if let Some(sdl2::keyboard::Keycode::Escape) = keycode {
-                        return true;
-                    }
-                }
-                _ => {}
-            }
-        }
-        false
+    fn collect_events(&self, event_pump: &mut sdl2::EventPump) -> (Rc<[event::Event]>, bool) {
+        let events = event_pump.poll_iter().collect::<Rc<[event::Event]>>();
+        let should_quit = events
+            .iter()
+            .any(|event| matches!(event, event::Event::Quit { .. }));
+
+        (events, should_quit)
     }
 
     fn get_resolution(&self) -> Result<(u32, u32), String> {

@@ -159,15 +159,13 @@ impl Entity {
         self.set_dir(new_dir);
     }
 
-    pub(crate) fn update(&mut self, scene: &mut Scene, delta_time: Duration, time: Duration) {
+    pub(crate) fn update(&mut self, scene: &mut Scene) {
         let self_ptr = self as *mut Entity;
         let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
         for script in scripts {
             let ctx = UpdateContext {
                 entity: unsafe { &mut *self_ptr },
                 scene,
-                time,
-                delta_time,
             };
 
             script.update(ctx);

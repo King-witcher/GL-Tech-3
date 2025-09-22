@@ -1,14 +1,14 @@
-use std::time::Duration;
-
 use crate::{Scene, world::Entity};
+use sdl2::event::Event;
+use std::rc::Rc;
 
 pub struct StartContext;
+
 pub struct UpdateContext<'a> {
-    pub scene: &'a mut Scene,
     pub entity: &'a mut Entity,
-    pub time: Duration,
-    pub delta_time: Duration,
+    pub scene: &'a mut Scene,
 }
+
 pub struct EndContext;
 
 pub trait Script {

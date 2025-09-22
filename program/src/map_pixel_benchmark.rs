@@ -48,9 +48,9 @@ impl BenchmarkScript {
 impl Script for BenchmarkScript {
     fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
 
-    fn update(&mut self, ctx: UpdateContext) {
+    fn update(&mut self, _: UpdateContext) {
         self.frames += 1.0;
-        self.delta += ctx.delta_time.as_secs_f32();
+        self.delta += time::delta_time().as_secs_f32();
         if self.delta >= 5.0 {
             let fps = self.frames / self.delta;
             println!("FPS: {}", fps);

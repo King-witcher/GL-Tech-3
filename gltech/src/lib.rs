@@ -3,7 +3,7 @@ pub mod engine;
 mod exports;
 pub mod imaging;
 pub mod prelude;
-mod renderer;
 pub mod scripting;
+mod sdl;
 pub mod world;
 pub use exports::*;
