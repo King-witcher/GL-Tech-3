@@ -42,6 +42,11 @@ impl Image {
     }
 
     #[inline]
+    pub(crate) fn byte_slice(&self) -> &[u8] {
+        unsafe { std::slice::from_raw_parts(self.u8_buffer(), self.size()) }
+    }
+
+    #[inline]
     pub fn dimensions(&self) -> (u32, u32) {
         (self.width, self.height)
     }

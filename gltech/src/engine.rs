@@ -1,8 +1,8 @@
-use std::{slice, time::Duration};
+use std::time::Duration;
 
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
-use crate::{Entity, Ray, Scene, Spatial, renderer, scripting::UpdateContext};
+use crate::{Entity, Image, Ray, Scene, Spatial, renderer, scripting::UpdateContext};
 
 pub struct Engine {
     borderless: bool,
@@ -78,15 +78,9 @@ impl Engine {
             };
 
             let planes: Vec<&crate::Plane> = scene.planes().collect();
-            renderer::draw_planes(camera, planes, &mut gltech_image);
 
-            let slice =
-                unsafe { slice::from_raw_parts(gltech_image.u8_buffer(), gltech_image.size()) };
-            screen_texture
-                .update(None, slice, (width * 4) as usize)
-                .map_err(|e| e.to_string())?;
-            canvas.copy(&screen_texture, None, None)?;
-            canvas.present();
+            renderer::draw_planes(camera, planes, &mut gltech_image);
+            Self::present(&mut canvas, &mut screen_texture, gltech_image.cheap_clone())?;
 
             let time = first_frame.elapsed();
             let delta_time = last_frame.elapsed();
@@ -95,6 +89,21 @@ impl Engine {
             last_frame = std::time::Instant::now();
         }
 
+        Ok(())
+    }
+
+    #[inline]
+    fn present(
+        canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
+        texture: &mut sdl2::render::Texture,
+        image: Image,
+    ) -> Result<(), String> {
+        let slice = image.byte_slice();
+        texture
+            .update(None, slice, (image.width() * 4) as usize)
+            .map_err(|e| e.to_string())?;
+        canvas.copy(texture, None, None)?;
+        canvas.present();
         Ok(())
     }
 
