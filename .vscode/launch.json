@@ -11,7 +11,7 @@
       "type": "lldb",
     },
     {
-      "console": "integratedTerminal",
+      "console": "internalConsole",
       "cwd": "${workspaceFolder}",
       "name": "Run (Release)",
       "preLaunchTask": "Build (Release)",

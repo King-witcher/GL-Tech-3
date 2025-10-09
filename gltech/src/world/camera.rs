@@ -1,19 +1,19 @@
 use crate::prelude::*;
 
 pub struct Camera {
-    pub pos: Vector,
-    pub dir: Vector,
+    pub ray: Ray,
     pub z: f32,
     pub fov: f32,
 }
 
+impl Camera {}
+
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            pos: Vector::ZERO,
-            dir: Vector::FORWARD,
+            ray: Ray::new(Vector::ZERO, Vector::FORWARD),
             z: 0.5,
-            fov: 110.0,
+            fov: 90.0,
         }
     }
 }

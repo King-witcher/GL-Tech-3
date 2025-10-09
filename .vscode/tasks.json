@@ -20,10 +20,9 @@
     },
     {
       "label": "Build (Release)",
-      "type": "shell",
-      "command": "cargo",
+      "type": "cargo",
+      "command": "build",
       "args": [
-        "build",
         "--release"
       ],
       "icon": {

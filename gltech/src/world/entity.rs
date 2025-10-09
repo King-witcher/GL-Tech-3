@@ -1,15 +1,13 @@
 use std::ptr::NonNull;
-use std::time::Duration;
 
 use crate::scripting::script::Script;
 use crate::world::Plane;
 use crate::world::empty::Empty;
-use crate::{Camera, UpdateContext, prelude::*};
+use crate::{UpdateContext, prelude::*};
 
 pub(crate) enum EntityInner {
     Empty(Empty),
     Plane(Plane),
-    Camera(Camera),
 }
 
 pub struct Entity {
@@ -30,7 +28,6 @@ impl Entity {
         match self.inner {
             EntityInner::Empty(ref empty) => empty.pos,
             EntityInner::Plane(ref plane) => plane.pos(),
-            EntityInner::Camera(ref camera) => camera.pos,
         }
     }
 
@@ -38,7 +35,6 @@ impl Entity {
         match self.inner {
             EntityInner::Empty(ref empty) => empty.dir,
             EntityInner::Plane(ref plane) => plane.dir(),
-            EntityInner::Camera(ref camera) => camera.dir,
         }
     }
 
@@ -50,9 +46,6 @@ impl Entity {
             EntityInner::Plane(ref mut plane) => {
                 plane.segment.start = pos.into();
             }
-            EntityInner::Camera(ref mut camera) => {
-                camera.pos = pos.into();
-            }
         }
     }
 
@@ -63,9 +56,6 @@ impl Entity {
             }
             EntityInner::Plane(ref mut plane) => {
                 plane.segment.dir = dir.into();
-            }
-            EntityInner::Camera(ref mut camera) => {
-                camera.dir = dir.into();
             }
         }
     }
@@ -99,14 +89,6 @@ impl Entity {
         self.dir().angle()
     }
 
-    pub fn z(&self) -> f32 {
-        if let EntityInner::Camera(camera) = &self.inner {
-            camera.z
-        } else {
-            0.0
-        }
-    }
-
     pub fn set_pos(&mut self, pos: impl Into<Vector>) {
         match self.parent {
             Some(_) => {
@@ -134,12 +116,6 @@ impl Entity {
     pub fn set_angle(&mut self, angle: f32) {
         let new_dir = Vector::from_deg(angle);
         self.set_dir(new_dir);
-    }
-
-    pub fn set_z(&mut self, z: f32) {
-        if let EntityInner::Camera(camera) = &mut self.inner {
-            camera.z = z;
-        }
     }
 
     pub fn translate(&mut self, delta: impl Into<Vector>) {
@@ -195,18 +171,6 @@ impl From<Empty> for Entity {
             relative_dir: empty.dir,
             parent: None,
             inner: EntityInner::Empty(empty),
-            scripts: Vec::new(),
-        }
-    }
-}
-
-impl From<Camera> for Entity {
-    fn from(camera: Camera) -> Self {
-        Self {
-            relative_pos: camera.pos,
-            relative_dir: camera.dir,
-            parent: None,
-            inner: EntityInner::Camera(camera),
             scripts: Vec::new(),
         }
     }

@@ -1,11 +1,11 @@
 use super::renderer;
 use crate::engine::time;
 use crate::sdl::*;
-use crate::{Image, Ray, Scene};
+use crate::{Image, Scene};
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 use std::rc::Rc;
 
-pub struct Engine {
+pub struct GLTechContext {
     borderless: bool,
     fullscreen: bool,
     resolution: Option<(u32, u32)>,
@@ -15,11 +15,11 @@ pub struct Engine {
     vsync: bool,
 }
 
-pub fn init() -> Result<Engine, String> {
+pub fn init() -> Result<GLTechContext, String> {
     let sdl = sdl2::init()?;
     let video = sdl.video()?;
 
-    Ok(Engine {
+    Ok(GLTechContext {
         borderless: false,
         fullscreen: false,
         resolution: None,
@@ -30,7 +30,7 @@ pub fn init() -> Result<Engine, String> {
     })
 }
 
-impl Engine {
+impl GLTechContext {
     pub fn borderless(&mut self, borderless: bool) -> &mut Self {
         self.borderless = borderless;
         self
@@ -71,14 +71,9 @@ impl Engine {
                 break;
             }
 
-            let camera = Ray {
-                start: scene.camera.pos(),
-                dir: scene.camera.dir(),
-            };
-
             let planes: Vec<&crate::Plane> = scene.planes().collect();
 
-            renderer::draw_planes(camera, scene.camera.z(), planes, &mut gltech_surface);
+            renderer::draw_planes(&scene.player, planes, &mut gltech_surface);
             Self::present(
                 &mut canvas,
                 &mut screen_texture,

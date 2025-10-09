@@ -1,18 +1,16 @@
-use std::time::Duration;
-
 use crate::{Ray, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
 // like planes are owned by entities and the Scene only holds references to them for rendering and collision detection.
 pub struct Scene {
-    pub camera: Entity,
+    pub player: Camera,
     children: Vec<Entity>,
 }
 
 impl Scene {
     pub fn new() -> Self {
         Self {
-            camera: Camera::default().into(),
+            player: Camera::default().into(),
             children: Vec::new(),
         }
     }
