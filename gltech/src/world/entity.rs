@@ -1,5 +1,6 @@
 use std::ptr::NonNull;
 
+use crate::engine::Input;
 use crate::scripting::script::Script;
 use crate::world::Plane;
 use crate::world::empty::Empty;
@@ -135,12 +136,13 @@ impl Entity {
         self.set_dir(new_dir);
     }
 
-    pub(crate) fn update(&mut self, scene: &mut Scene) {
+    pub(crate) fn update(&mut self, scene: &mut Scene, input: Input) {
         let self_ptr = self as *mut Entity;
         let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
         for script in scripts {
             let ctx = UpdateContext {
                 entity: unsafe { &mut *self_ptr },
+                input: input.clone(),
                 scene,
             };
 

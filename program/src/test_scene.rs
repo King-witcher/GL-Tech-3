@@ -2,6 +2,7 @@ use gltech::{
     engine,
     prelude::*,
     scripting::{Script, UpdateContext},
+    sdl::keyboard::Scancode,
     world::{Entity, Plane},
     Texture,
 };
@@ -47,6 +48,9 @@ impl Script for RotateScript {
     fn update(&mut self, ctx: UpdateContext) {
         let delta_time = time::delta_time().as_secs_f32();
         ctx.entity.rotate(90.0 * delta_time);
+        if ctx.input.is_key_down(Scancode::W) {
+            ctx.scene.player.z += 1.0 * delta_time;
+        }
     }
 
     fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}

@@ -1,11 +1,9 @@
-use crate::{Scene, world::Entity};
-use sdl2::event::Event;
-use std::rc::Rc;
-
+use crate::{Scene, engine::Input, world::Entity};
 pub struct StartContext;
 
 pub struct UpdateContext<'a> {
     pub entity: &'a mut Entity,
+    pub input: Input,
     pub scene: &'a mut Scene,
 }
 

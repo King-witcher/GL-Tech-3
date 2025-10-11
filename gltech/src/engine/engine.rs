@@ -1,9 +1,7 @@
 use super::renderer;
 use crate::engine::time;
-use crate::sdl::*;
 use crate::{Image, Scene};
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
-use std::rc::Rc;
 
 pub struct GLTechContext {
     borderless: bool,
@@ -64,10 +62,11 @@ impl GLTechContext {
         let mut event_pump = self.sdl.event_pump()?;
         let (width, height) = self.get_resolution()?;
         let mut gltech_surface = crate::Image::new(width, height);
+        let mut input = crate::engine::Input::new();
         time::init_time();
         loop {
-            let (_events, should_quit) = self.collect_events(&mut event_pump);
-            if should_quit {
+            input.update(event_pump.poll_iter());
+            if input.exit {
                 break;
             }
 
@@ -80,7 +79,7 @@ impl GLTechContext {
                 gltech_surface.cheap_clone(),
             )?;
 
-            scene.update();
+            scene.update(input.clone());
             time::reset_frame();
         }
         time::clear_time();
@@ -101,15 +100,6 @@ impl GLTechContext {
         canvas.copy(texture, None, None)?;
         canvas.present();
         Ok(())
-    }
-
-    fn collect_events(&self, event_pump: &mut sdl2::EventPump) -> (Rc<[event::Event]>, bool) {
-        let events = event_pump.poll_iter().collect::<Rc<[event::Event]>>();
-        let should_quit = events
-            .iter()
-            .any(|event| matches!(event, event::Event::Quit { .. }));
-
-        (events, should_quit)
     }
 
     fn get_resolution(&self) -> Result<(u32, u32), String> {
