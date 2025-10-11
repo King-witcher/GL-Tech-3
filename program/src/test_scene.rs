@@ -37,8 +37,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut engine = engine::init()?;
-    engine.fullscreen(false).title("GLTech 3").vsync(false);
 
+    engine.fullscreen(false).title("GLTech 3").vsync(false);
     engine.launch(scene)?;
 
     Ok(())
