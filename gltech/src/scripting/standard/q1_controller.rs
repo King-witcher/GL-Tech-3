@@ -26,13 +26,13 @@ pub struct Q1Controller {
 impl Default for Q1Controller {
     fn default() -> Self {
         Self {
-            acceleration: 7.0,
-            air_acceleration: 10.0,
+            acceleration: 10.0,
+            air_acceleration: 7.0,
             jump_speed: 2.7,
             gravity: 8.0,
             sensitivity: 2.2,
             friction: 6.0,
-            height: 0.45,
+            height: 0.46,
             max_speed: 3.2,
             stop_speed: 3.0,
 
@@ -44,19 +44,34 @@ impl Default for Q1Controller {
 }
 
 impl Q1Controller {
+    /// Update horizontal velocity based on input
     fn update_velocity(&mut self, ctx: &UpdateContext) {
         let wishdir = Self::wishdir(ctx.scene.camera.ray.dir, ctx.input.clone());
 
         if self.grounded {
             self.accelerate(ctx, wishdir, self.max_speed);
+        } else {
+            self.air_accelerate(ctx, wishdir, self.max_speed);
         }
     }
 
-    fn update_z(&mut self, ctx: &mut UpdateContext, delta_time: f32) {
+    /// Check for jump input and initiate jump if grounded
+    fn check_jump(&mut self, ctx: &UpdateContext) {
+        if (ctx.input.was_key_pressed(Scancode::Space) || ctx.input.is_key_down(Scancode::Space))
+            && self.grounded
+        {
+            self.z_speed = self.jump_speed;
+            self.grounded = false;
+        }
+    }
+
+    /// Update the vertical position based on z_speed
+    fn update_z(&mut self, ctx: &mut UpdateContext) {
         if self.grounded {
             return;
         }
 
+        let delta_time = ctx.delta_time.as_secs_f32();
         ctx.scene.camera.z += self.z_speed * delta_time;
         if ctx.scene.camera.z < self.height {
             ctx.scene.camera.z = self.height;
@@ -70,6 +85,15 @@ impl Q1Controller {
         self.z_speed -= self.gravity * delta_time;
     }
 
+    /// Update the view direction based on mouse movement
+    fn update_view(&mut self, ctx: &mut UpdateContext) {
+        let mouse_delta = ctx.input.mouse_rel().0;
+        ctx.scene
+            .camera
+            .rotate(self.sensitivity * -0.022 * mouse_delta as f32);
+    }
+
+    /// Calculate the desired movement direction based on input
     fn wishdir(look_dir: Vector, input: Input) -> Vector {
         let mut dir = Vector::ZERO;
 
@@ -93,8 +117,10 @@ impl Q1Controller {
         dir.cmul(look_dir)
     }
 
+    /// Accelerate the player in the desired direction
     fn accelerate(&mut self, ctx: &UpdateContext, wishdir: Vector, wishspeed: f32) {
         let delta_time = ctx.delta_time.as_secs_f32();
+
         self.apply_friction(delta_time);
 
         let currentspeed = self.velocity.dot_product(wishdir);
@@ -111,6 +137,22 @@ impl Q1Controller {
         self.velocity += accelspeed * wishdir;
     }
 
+    fn air_accelerate(&mut self, ctx: &UpdateContext, wishdir: Vector, wishspeed: f32) {
+        let delta_time = ctx.delta_time.as_secs_f32();
+
+        let wishspd = f32::min(wishspeed, 0.3);
+        let currentspeed = self.velocity.dot_product(wishdir);
+        let addspeed = wishspd - currentspeed;
+
+        if addspeed <= 0.0 {
+            return;
+        }
+
+        let mut accelspeed = f32::min(self.air_acceleration * wishspeed * delta_time, addspeed);
+        self.velocity += accelspeed * wishdir;
+    }
+
+    /// Apply friction to the player's velocity
     fn apply_friction(&mut self, delta_time: f32) {
         let speed = self.velocity.mag();
         if speed < 0.01 {
@@ -126,12 +168,12 @@ impl Q1Controller {
 
         let drop = control * self.friction * delta_time;
         let mut new_speed = speed - drop;
+
         if new_speed < 0.0 {
             new_speed = 0.0;
         }
-        new_speed /= speed;
 
-        self.velocity *= new_speed;
+        self.velocity *= new_speed / speed;
     }
 }
 
@@ -142,23 +184,16 @@ impl Script for Q1Controller {
     }
 
     fn tick(&mut self, mut ctx: UpdateContext) {
-        let delta_time = ctx.delta_time.as_secs_f32();
-        if (ctx.input.was_key_pressed(Scancode::Space) || ctx.input.is_key_down(Scancode::Space))
-            && self.grounded
-        {
-            self.z_speed = self.jump_speed;
-            self.grounded = false;
-        }
+        self.update_view(&mut ctx);
+
+        self.check_jump(&ctx);
+        self.update_z(&mut ctx);
 
         self.update_velocity(&ctx);
-        self.update_z(&mut ctx, delta_time);
-
-        let mouse_delta = ctx.input.mouse_rel().0;
         ctx.scene
             .camera
-            .rotate(self.sensitivity * -0.022 * mouse_delta as f32);
-
-        ctx.scene.camera.ray.translate(self.velocity * delta_time);
+            .ray
+            .translate(self.velocity * ctx.delta_time.as_secs_f32());
     }
 
     fn end(&mut self, _ctx: EndContext) {}
