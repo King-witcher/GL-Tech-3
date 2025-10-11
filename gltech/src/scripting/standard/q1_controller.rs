@@ -12,7 +12,7 @@ pub struct Q1Controller {
     pub air_acceleration: f32,
     pub jump_speed: f32,
     pub gravity: f32,
-    pub sensitivity: f32,
+    pub m_sensitivity: f32,
     pub friction: f32,
     pub height: f32,
     pub max_speed: f32,
@@ -28,13 +28,13 @@ impl Default for Q1Controller {
         Self {
             acceleration: 10.0,
             air_acceleration: 7.0,
-            jump_speed: 2.7,
-            gravity: 8.0,
-            sensitivity: 2.2,
+            jump_speed: 270.0,
+            gravity: 800.0,
+            m_sensitivity: 2.2,
             friction: 6.0,
-            height: 0.46,
-            max_speed: 3.2,
-            stop_speed: 3.0,
+            height: 46.0,
+            max_speed: 320.0,
+            stop_speed: 100.0,
 
             velocity: Vector::ZERO,
             grounded: true,
@@ -77,8 +77,8 @@ impl Q1Controller {
             ctx.scene.camera.z = self.height;
             self.grounded = true;
             self.z_speed = 0.0;
-        } else if ctx.scene.camera.z > 1.0 {
-            ctx.scene.camera.z = 1.0;
+        } else if ctx.scene.camera.z > 100.0 {
+            ctx.scene.camera.z = 100.0;
             self.z_speed = 0.0;
         }
 
@@ -90,7 +90,7 @@ impl Q1Controller {
         let mouse_delta = ctx.input.mouse_rel().0;
         ctx.scene
             .camera
-            .rotate(self.sensitivity * -0.022 * mouse_delta as f32);
+            .rotate(self.m_sensitivity * -0.022 * mouse_delta as f32);
     }
 
     /// Calculate the desired movement direction based on input

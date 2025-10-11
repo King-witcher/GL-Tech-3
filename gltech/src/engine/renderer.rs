@@ -12,7 +12,7 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
     }
     let tan = (camera.fov * 0.5 * f32::consts::PI / 180.0).tan();
     let step0 = 2.0 * tan / image.widthf;
-    let col_height_1 = image.widthf / (2.0 * tan);
+    let col_height_1 = 100.0 * image.widthf / (2.0 * tan);
     let camera_pos = camera.pos();
     let camera_dir = camera.dir();
     let camera_left = Vector(-camera_dir.1, camera_dir.0);
@@ -30,8 +30,8 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
         };
 
         let col_h = col_height_1 / (ray.dir.dot_product(camera_dir) * collision_r);
-        let col_start = (image.heightf - 1.0 - col_h) * 0.5 + col_h * (camera.z - 0.5);
-        let col_end = (image.heightf - 1.0 + col_h) * 0.5 + col_h * (camera.z - 0.5);
+        let col_start = (image.heightf - 1.0 - col_h) * 0.5 + col_h * (camera.z / 100.0 - 0.5);
+        let col_end = (image.heightf - 1.0 + col_h) * 0.5 + col_h * (camera.z / 100.0 - 0.5);
 
         let mut draw_col_start = height as i32 - (image.heightf - col_start) as i32; // Inclusive
         let mut draw_col_end = height as i32 - (image.heightf - col_end) as i32; // Exclusive

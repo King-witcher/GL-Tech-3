@@ -5,15 +5,15 @@ use crate::{EndContext, Input, Script, StartContext, UpdateContext, Vector};
 pub struct FlatPlayerController {
     pub speed: f32,
     pub vertical_speed: f32,
-    pub sensitivity: f32,
+    pub m_sensitivity: f32,
 }
 
 impl Default for FlatPlayerController {
     fn default() -> Self {
         Self {
-            speed: 1.0,
-            vertical_speed: 1.0,
-            sensitivity: 2.2,
+            speed: 100.0,
+            vertical_speed: 100.0,
+            m_sensitivity: 2.2,
         }
     }
 }
@@ -59,7 +59,7 @@ impl Script for FlatPlayerController {
         let mouse_delta = ctx.input.mouse_rel().0;
         ctx.scene
             .camera
-            .rotate(self.sensitivity * -0.022 * mouse_delta as f32);
+            .rotate(self.m_sensitivity * -0.022 * mouse_delta as f32);
 
         if ctx.input.is_key_down(Scancode::Space) {
             ctx.scene.camera.z =

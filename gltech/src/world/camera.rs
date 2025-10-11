@@ -60,7 +60,7 @@ impl Default for Camera {
     fn default() -> Self {
         Self {
             ray: Ray::new(Vector::ZERO, Vector::FORWARD),
-            z: 0.5,
+            z: 50.0,
             fov: 90.0,
         }
     }
