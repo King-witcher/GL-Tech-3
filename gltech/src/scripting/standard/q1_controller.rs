@@ -49,7 +49,7 @@ impl Q1Controller {
         let wishdir = Self::wishdir(ctx.scene.camera.ray.dir, ctx.input.clone());
 
         if self.grounded {
-            self.accelerate(ctx, wishdir, self.max_speed);
+            self.ground_accelerate(ctx, wishdir, self.max_speed);
         } else {
             self.air_accelerate(ctx, wishdir, self.max_speed);
         }
@@ -118,13 +118,14 @@ impl Q1Controller {
     }
 
     /// Accelerate the player in the desired direction
-    fn accelerate(&mut self, ctx: &UpdateContext, wishdir: Vector, wishspeed: f32) {
+    fn ground_accelerate(&mut self, ctx: &UpdateContext, wishdir: Vector, wishspeed: f32) {
         let delta_time = ctx.delta_time.as_secs_f32();
 
         self.apply_friction(delta_time);
 
         let currentspeed = self.velocity.dot_product(wishdir);
         let addspeed = wishspeed - currentspeed;
+
         if addspeed <= 0.0 {
             return;
         }
@@ -140,22 +141,21 @@ impl Q1Controller {
     fn air_accelerate(&mut self, ctx: &UpdateContext, wishdir: Vector, wishspeed: f32) {
         let delta_time = ctx.delta_time.as_secs_f32();
 
-        let wishspd = f32::min(wishspeed, 0.3);
         let currentspeed = self.velocity.dot_product(wishdir);
-        let addspeed = wishspd - currentspeed;
+        let addspeed = wishspeed.min(30.0) - currentspeed;
 
         if addspeed <= 0.0 {
             return;
         }
 
-        let mut accelspeed = f32::min(self.air_acceleration * wishspeed * delta_time, addspeed);
+        let accelspeed = (self.air_acceleration * wishspeed * delta_time).min(addspeed);
         self.velocity += accelspeed * wishdir;
     }
 
     /// Apply friction to the player's velocity
-    fn apply_friction(&mut self, delta_time: f32) {
+    fn apply_friction(&mut self, frametime: f32) {
         let speed = self.velocity.mag();
-        if speed < 0.01 {
+        if speed < 1.0 {
             self.velocity = Vector::ZERO;
             return;
         }
@@ -166,12 +166,8 @@ impl Q1Controller {
             speed
         };
 
-        let drop = control * self.friction * delta_time;
-        let mut new_speed = speed - drop;
-
-        if new_speed < 0.0 {
-            new_speed = 0.0;
-        }
+        let drop = control * self.friction * frametime;
+        let new_speed = (speed - drop).max(0.0);
 
         self.velocity *= new_speed / speed;
     }
