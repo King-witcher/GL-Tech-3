@@ -46,9 +46,9 @@ impl BenchmarkScript {
 }
 
 impl Script for BenchmarkScript {
-    fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
+    fn start(&mut self, _ctx: gltech::scripting::script::StartContext) {}
 
-    fn update(&mut self, _: UpdateContext) {
+    fn tick(&mut self, _: UpdateContext) {
         self.frames += 1.0;
         self.delta += time::delta_time().as_secs_f32();
         if self.delta >= 5.0 {
@@ -59,5 +59,5 @@ impl Script for BenchmarkScript {
         }
     }
 
-    fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}
+    fn end(&mut self, _ctx: gltech::scripting::script::EndContext) {}
 }

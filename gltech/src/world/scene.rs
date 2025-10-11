@@ -1,4 +1,4 @@
-use crate::{Ray, engine::Input, world::*};
+use crate::{Ray, SystemContext, engine::Input, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
 // like planes are owned by entities and the Scene only holds references to them for rendering and collision detection.
@@ -37,12 +37,21 @@ impl Scene {
             })
     }
 
-    pub(crate) fn update(&mut self, input: Input) {
+    pub(crate) fn start(&mut self, system: &mut SystemContext) {
         let ptr = self as *mut Scene;
         let current_entities = self.entities_mut().collect::<Vec<_>>();
         for entity in current_entities {
             let second_ref = unsafe { &mut *ptr };
-            entity.update(second_ref, input.clone());
+            entity.start(second_ref, system);
+        }
+    }
+
+    pub(crate) fn update(&mut self, input: Input, system: &mut SystemContext) {
+        let ptr = self as *mut Scene;
+        let current_entities = self.entities_mut().collect::<Vec<_>>();
+        for entity in current_entities {
+            let second_ref = unsafe { &mut *ptr };
+            entity.update(second_ref, input.clone(), system);
         }
     }
 

@@ -4,7 +4,7 @@ use crate::engine::Input;
 use crate::scripting::script::Script;
 use crate::world::Plane;
 use crate::world::empty::Empty;
-use crate::{UpdateContext, prelude::*};
+use crate::{StartContext, SystemContext, UpdateContext, prelude::*};
 
 pub(crate) enum EntityInner {
     Empty(Empty),
@@ -136,17 +136,32 @@ impl Entity {
         self.set_dir(new_dir);
     }
 
-    pub(crate) fn update(&mut self, scene: &mut Scene, input: Input) {
+    pub(crate) fn start(&mut self, scene: &mut Scene, system: &mut SystemContext) {
+        let self_ptr = self as *mut Entity;
+        let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
+        for script in scripts {
+            let ctx = StartContext {
+                entity: unsafe { &mut *self_ptr },
+                system,
+                scene,
+            };
+
+            script.start(ctx);
+        }
+    }
+
+    pub(crate) fn update(&mut self, scene: &mut Scene, input: Input, system: &mut SystemContext) {
         let self_ptr = self as *mut Entity;
         let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
         for script in scripts {
             let ctx = UpdateContext {
                 entity: unsafe { &mut *self_ptr },
                 input: input.clone(),
+                system,
                 scene,
             };
 
-            script.update(ctx);
+            script.tick(ctx);
         }
     }
 }

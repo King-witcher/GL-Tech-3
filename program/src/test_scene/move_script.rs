@@ -1,13 +1,19 @@
+use gltech::prelude::*;
+use gltech::EndContext;
 use gltech::Scancode;
 use gltech::Script;
+use gltech::StartContext;
+use gltech::UpdateContext;
 
 pub struct MovePlayer;
 
 impl Script for MovePlayer {
-    fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
+    fn start(&mut self, ctx: StartContext) {
+        ctx.system.set_capture_mouse(false);
+    }
 
-    fn update(&mut self, ctx: gltech::UpdateContext) {
-        let delta_time = gltech::engine::time::delta_time().as_secs_f32();
+    fn tick(&mut self, ctx: UpdateContext) {
+        let delta_time = time::delta_time().as_secs_f32();
         if ctx.input.is_key_down(Scancode::W) {
             ctx.scene.camera.ray.start += delta_time * ctx.scene.camera.ray.dir;
         }
@@ -16,5 +22,5 @@ impl Script for MovePlayer {
         }
     }
 
-    fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}
+    fn end(&mut self, _ctx: EndContext) {}
 }

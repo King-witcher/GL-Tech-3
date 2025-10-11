@@ -1,6 +1,6 @@
 use super::renderer;
 use crate::engine::time;
-use crate::{Image, Scene};
+use crate::{Image, Scene, SysRequest, SystemContext};
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
 pub struct GLTechContext {
@@ -63,10 +63,16 @@ impl GLTechContext {
         let (width, height) = self.get_resolution()?;
         let mut gltech_surface = crate::Image::new(width, height);
         let mut input = crate::engine::Input::new();
+        let mut system_context = SystemContext::new();
+        scene.start(&mut system_context);
         time::init_time();
         loop {
             input.update(event_pump.poll_iter());
             if input.exit {
+                break;
+            }
+            let exit = self.process_requests(&mut system_context);
+            if exit {
                 break;
             }
 
@@ -79,7 +85,7 @@ impl GLTechContext {
                 gltech_surface.cheap_clone(),
             )?;
 
-            scene.update(input.clone());
+            scene.update(input.clone(), &mut system_context);
             time::reset_frame();
         }
         time::clear_time();
@@ -113,6 +119,22 @@ impl GLTechContext {
                 Ok((1600, 900))
             }
         }
+    }
+
+    fn process_requests(&self, system_context: &mut SystemContext) -> bool {
+        for request in system_context.take_requests() {
+            match request {
+                SysRequest::Exit => return true,
+                SysRequest::SetResolution(_, _) => todo!(),
+                SysRequest::SetFullscreen(_) => todo!(),
+                SysRequest::SetCaptureMouse(capture) => {
+                    self.sdl.mouse().set_relative_mouse_mode(capture);
+                }
+                SysRequest::SetTitle(_) => todo!(),
+                SysRequest::SetVSync(_) => todo!(),
+            }
+        }
+        false
     }
 
     fn create_window(&self) -> Result<sdl2::video::Window, String> {
