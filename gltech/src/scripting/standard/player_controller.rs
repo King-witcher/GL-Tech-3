@@ -2,13 +2,13 @@ use sdl2::keyboard::Scancode;
 
 use crate::{EndContext, Input, Script, StartContext, UpdateContext, Vector};
 
-pub struct PlayerController {
+pub struct FlatPlayerController {
     pub speed: f32,
     pub vertical_speed: f32,
     pub sensitivity: f32,
 }
 
-impl Default for PlayerController {
+impl Default for FlatPlayerController {
     fn default() -> Self {
         Self {
             speed: 1.0,
@@ -18,7 +18,7 @@ impl Default for PlayerController {
     }
 }
 
-impl PlayerController {
+impl FlatPlayerController {
     fn wish_dir(look_dir: Vector, input: Input) -> Vector {
         let mut dir = Vector::ZERO;
 
@@ -43,7 +43,7 @@ impl PlayerController {
     }
 }
 
-impl Script for PlayerController {
+impl Script for FlatPlayerController {
     fn start(&mut self, ctx: StartContext) {
         ctx.system.set_capture_mouse(true);
     }

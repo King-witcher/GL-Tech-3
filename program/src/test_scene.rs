@@ -4,7 +4,7 @@ use crate::{file_system, images, test_scene::rotate_script::RotateScript};
 use gltech::{
     engine,
     prelude::*,
-    standard::PlayerController,
+    standard::FlatPlayerController,
     world::{Entity, Plane},
     Texture,
 };
@@ -29,7 +29,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let primitive = Plane::new(Vector(1.0, 0.25), Vector(0.0, 1.0), texture);
         let mut entity = Entity::from(primitive);
         entity.add_script(Box::new(RotateScript));
-        entity.add_script(Box::new(PlayerController::default()));
+        entity.add_script(Box::new(FlatPlayerController::default()));
         scene.add(entity);
     }
 
