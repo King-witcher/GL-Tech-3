@@ -27,7 +27,7 @@ impl Default for Q1Controller {
     fn default() -> Self {
         Self {
             acceleration: 10.0,
-            air_acceleration: 7.0,
+            air_acceleration: 10.0,
             jump_speed: 270.0,
             gravity: 800.0,
             m_sensitivity: 2.2,
