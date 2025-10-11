@@ -1,13 +1,16 @@
+mod move_script;
+mod rotate_script;
+
+use crate::{
+    file_system, images,
+    test_scene::{move_script::MovePlayer, rotate_script::RotateScript},
+};
 use gltech::{
     engine,
     prelude::*,
-    scripting::{Script, UpdateContext},
-    sdl::keyboard::Scancode,
     world::{Entity, Plane},
     Texture,
 };
-
-use crate::{file_system, images};
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
@@ -29,6 +32,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         let primitive = Plane::new(Vector(1.0, 0.25), Vector(0.0, 1.0), texture);
         let mut entity = Entity::from(primitive);
         entity.add_script(Box::new(RotateScript));
+        entity.add_script(Box::new(MovePlayer));
         scene.add(entity);
     }
 
@@ -38,20 +42,4 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     engine.launch(scene)?;
 
     Ok(())
-}
-
-struct RotateScript;
-
-impl Script for RotateScript {
-    fn start(&mut self, _ctx: &gltech::scripting::script::StartContext) {}
-
-    fn update(&mut self, ctx: UpdateContext) {
-        let delta_time = time::delta_time().as_secs_f32();
-        ctx.entity.rotate(90.0 * delta_time);
-        if ctx.input.is_key_down(Scancode::W) {
-            ctx.scene.player.z += 1.0 * delta_time;
-        }
-    }
-
-    fn end(&mut self, _ctx: &gltech::scripting::script::EndContext) {}
 }

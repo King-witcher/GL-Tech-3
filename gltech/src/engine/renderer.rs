@@ -13,7 +13,8 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
     let tan = (camera.fov * 0.5 * f32::consts::PI / 180.0).tan();
     let step0 = 2.0 * tan / image.widthf;
     let col_height_1 = image.widthf / (2.0 * tan);
-    let camera_dir = camera.ray.dir;
+    let camera_pos = camera.pos();
+    let camera_dir = camera.dir();
     let camera_left = Vector(-camera_dir.1, camera_dir.0);
 
     (0..width).into_par_iter().for_each(|col| {
@@ -21,7 +22,7 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
         let ray = {
             let delta = (width >> 1) as i32 - col as i32;
             let dir = camera_dir + camera_left * step0 * delta as f32;
-            Ray::new(camera.ray.start, dir)
+            Ray::new(camera_pos, dir)
         };
 
         let Some((plane, (collision_r, collision_s))) = get_nearest(&planes, ray) else {

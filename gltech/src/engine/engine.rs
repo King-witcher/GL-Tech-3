@@ -72,7 +72,7 @@ impl GLTechContext {
 
             let planes: Vec<&crate::Plane> = scene.planes().collect();
 
-            renderer::draw_planes(&scene.player, planes, &mut gltech_surface);
+            renderer::draw_planes(&scene.camera, planes, &mut gltech_surface);
             Self::present(
                 &mut canvas,
                 &mut screen_texture,
