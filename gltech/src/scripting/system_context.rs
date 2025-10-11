@@ -5,17 +5,18 @@ pub enum SysRequest {
     SetCaptureMouse(bool),
     SetTitle(String),
     SetVSync(bool),
-    Exit,
 }
 
 pub struct SystemContext {
     requests: Vec<SysRequest>,
+    pub(crate) exit: bool,
 }
 
 impl SystemContext {
     pub(crate) fn new() -> Self {
         Self {
             requests: Vec::new(),
+            exit: false,
         }
     }
 
@@ -40,7 +41,7 @@ impl SystemContext {
     }
 
     pub fn exit(&mut self) {
-        self.requests.push(SysRequest::Exit);
+        self.exit = true;
     }
 
     pub(crate) fn take_requests(&mut self) -> impl Iterator<Item = SysRequest> {

@@ -14,23 +14,23 @@ impl Color {
 
     #[inline]
     pub const fn r(self) -> u8 {
-        (self.0 >> 24) as u8
-    }
-
-    #[inline]
-    pub const fn g(self) -> u8 {
         (self.0 >> 16) as u8
     }
 
     #[inline]
-    pub const fn b(self) -> u8 {
+    pub const fn g(self) -> u8 {
         (self.0 >> 8) as u8
     }
 
     #[inline]
-    pub const fn a(self) -> u8 {
-        (self.0 & 0xFF) as u8
+    pub const fn b(self) -> u8 {
+        self.0 as u8
     }
+
+    // #[inline]
+    // pub const fn a(self) -> u8 {
+    //     (self.0 & 0xFF) as u8
+    // }
 
     #[inline]
     pub const fn luma(self) -> u8 {

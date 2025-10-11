@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use super::renderer;
-use crate::{Image, Scene, SysRequest, SystemContext};
+use crate::{Image, Input, Scene, SysRequest, SystemContext};
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
 pub struct GLTechContext {
@@ -56,44 +56,63 @@ impl GLTechContext {
     }
 
     pub fn launch(self, mut scene: Scene) -> Result<(), String> {
-        let window = self.create_window()?;
-        let mut canvas = self.create_canvas(window)?;
-        let texture_creator = canvas.texture_creator();
-        let mut screen_texture = self.create_texture(&texture_creator)?;
-        let mut event_pump = self.sdl.event_pump()?;
-        let (width, height) = self.get_resolution()?;
-        let mut gltech_surface = crate::Image::new(width, height);
-        let mut input = crate::engine::Input::new();
+        let start_time = Instant::now();
+
+        // Run start functions even before creating the window
         let mut system_context = SystemContext::new();
         scene.start(&mut system_context);
+        if system_context.exit {
+            return Ok(());
+        }
 
-        let start_time = Instant::now();
-        let mut frame_time = start_time;
+        // Spawn the window and create the screen texture and gltech surface
+        let mut canvas = self.spawn_window()?;
+        let texture_creator = canvas.texture_creator();
+        let mut screen_texture = self.get_screen_texture(&texture_creator)?;
+        let (width, height) = self.get_resolution()?;
+        let mut gltech_surface = crate::Image::new(width, height);
+
+        // Get an event pump and start the main loop
+        let mut event_pump = self.sdl.event_pump()?;
+
+        // Main loop
+        let mut frame_time = Instant::now();
+        let mut input_handler = Input::new();
         loop {
-            let exit = self.process_requests(&mut system_context);
-            if exit {
-                break;
-            }
+            // Process any requests from the last frame, such as changing resolution or fullscreen
+            self.process_requests(&mut system_context);
 
+            // Render the scene to the surface
             let planes: Vec<&crate::Plane> = scene.planes().collect();
             renderer::draw_planes(&scene.camera, planes, &mut gltech_surface);
+
+            // Present the surface on the screen
             Self::present(
                 &mut canvas,
                 &mut screen_texture,
                 gltech_surface.cheap_clone(),
             )?;
 
-            input.update(event_pump.poll_iter());
-            if input.exit {
+            // Update input and check for exit event (usually window close)
+            input_handler.update(event_pump.poll_iter());
+            if input_handler.exit {
                 break;
             }
+
+            // Update the scene with input and time data
+            let delta_time = frame_time.elapsed();
+            frame_time = Instant::now();
             scene.update(
-                input.clone(),
+                input_handler.clone(),
                 &mut system_context,
                 start_time.elapsed(),
-                frame_time.elapsed(),
+                delta_time,
             );
-            frame_time = Instant::now();
+
+            // Check if any script requested exit
+            if system_context.exit {
+                break;
+            }
         }
 
         Ok(())
@@ -127,10 +146,9 @@ impl GLTechContext {
         }
     }
 
-    fn process_requests(&self, system_context: &mut SystemContext) -> bool {
+    fn process_requests(&self, system_context: &mut SystemContext) {
         for request in system_context.take_requests() {
             match request {
-                SysRequest::Exit => return true,
                 SysRequest::SetResolution(_, _) => todo!(),
                 SysRequest::SetFullscreen(_) => todo!(),
                 SysRequest::SetCaptureMouse(capture) => {
@@ -140,7 +158,6 @@ impl GLTechContext {
                 SysRequest::SetVSync(_) => todo!(),
             }
         }
-        false
     }
 
     fn create_window(&self) -> Result<sdl2::video::Window, String> {
@@ -160,10 +177,8 @@ impl GLTechContext {
         Ok(window)
     }
 
-    fn create_canvas(
-        &self,
-        window: sdl2::video::Window,
-    ) -> Result<sdl2::render::Canvas<sdl2::video::Window>, String> {
+    fn spawn_window(&self) -> Result<sdl2::render::Canvas<sdl2::video::Window>, String> {
+        let window = self.create_window()?;
         let mut builder = window.into_canvas().accelerated();
         if self.vsync {
             builder = builder.present_vsync();
@@ -172,7 +187,7 @@ impl GLTechContext {
         Ok(canvas)
     }
 
-    fn create_texture<'r>(
+    fn get_screen_texture<'r>(
         &self,
         texture_creator: &'r TextureCreator<sdl2::video::WindowContext>,
     ) -> Result<sdl2::render::Texture<'r>, String> {

@@ -80,9 +80,9 @@ impl Vector {
     pub const ZERO: Vector = Vector(0.0, 0.0);
     pub const IDENTITY: Vector = Vector(1.0, 1.0);
     pub const FORWARD: Vector = Vector(1.0, 0.0);
-    pub const RIGHT: Vector = Vector(0.0, 1.0);
-    pub const LEFT: Vector = Vector(-1.0, 0.0);
-    pub const BACK: Vector = Vector(0.0, -1.0);
+    pub const RIGHT: Vector = Vector(0.0, -1.0);
+    pub const LEFT: Vector = Vector(0.0, 1.0);
+    pub const BACK: Vector = Vector(-1.0, 0.0);
 }
 
 impl Add for Vector {
