@@ -1,9 +1,6 @@
-use gltech::prelude::*;
-use gltech::EndContext;
-use gltech::Scancode;
-use gltech::Script;
-use gltech::StartContext;
-use gltech::UpdateContext;
+use sdl2::keyboard::Scancode;
+
+use crate::{EndContext, Script, Spatial, StartContext, UpdateContext};
 
 pub struct MovePlayer;
 

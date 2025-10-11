@@ -1,5 +1,6 @@
+use std::time::Instant;
+
 use super::renderer;
-use crate::engine::time;
 use crate::{Image, Scene, SysRequest, SystemContext};
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
@@ -65,19 +66,16 @@ impl GLTechContext {
         let mut input = crate::engine::Input::new();
         let mut system_context = SystemContext::new();
         scene.start(&mut system_context);
-        time::init_time();
+
+        let start_time = Instant::now();
+        let mut frame_time = start_time;
         loop {
-            input.update(event_pump.poll_iter());
-            if input.exit {
-                break;
-            }
             let exit = self.process_requests(&mut system_context);
             if exit {
                 break;
             }
 
             let planes: Vec<&crate::Plane> = scene.planes().collect();
-
             renderer::draw_planes(&scene.camera, planes, &mut gltech_surface);
             Self::present(
                 &mut canvas,
@@ -85,10 +83,18 @@ impl GLTechContext {
                 gltech_surface.cheap_clone(),
             )?;
 
-            scene.update(input.clone(), &mut system_context);
-            time::reset_frame();
+            input.update(event_pump.poll_iter());
+            if input.exit {
+                break;
+            }
+            scene.update(
+                input.clone(),
+                &mut system_context,
+                start_time.elapsed(),
+                frame_time.elapsed(),
+            );
+            frame_time = Instant::now();
         }
-        time::clear_time();
 
         Ok(())
     }

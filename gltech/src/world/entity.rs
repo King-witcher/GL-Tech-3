@@ -1,4 +1,5 @@
 use std::ptr::NonNull;
+use std::time::Duration;
 
 use crate::engine::Input;
 use crate::scripting::script::Script;
@@ -150,13 +151,23 @@ impl Entity {
         }
     }
 
-    pub(crate) fn update(&mut self, scene: &mut Scene, input: Input, system: &mut SystemContext) {
+    pub(crate) fn update(
+        &mut self,
+        scene: &mut Scene,
+        time: Duration,
+        delta_time: Duration,
+        input: Input,
+        system: &mut SystemContext,
+    ) {
+        let _ = time;
         let self_ptr = self as *mut Entity;
         let scripts = self.scripts.iter_mut().collect::<Vec<_>>();
         for script in scripts {
             let ctx = UpdateContext {
                 entity: unsafe { &mut *self_ptr },
                 input: input.clone(),
+                time,
+                delta_time,
                 system,
                 scene,
             };

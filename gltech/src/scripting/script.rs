@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{Scene, SystemContext, engine::Input, world::Entity};
 
 pub struct StartContext<'a> {
@@ -10,12 +12,15 @@ pub struct UpdateContext<'a> {
     pub system: &'a mut SystemContext,
     pub entity: &'a mut Entity,
     pub input: Input,
+    pub time: Duration,
+    pub delta_time: Duration,
     pub scene: &'a mut Scene,
 }
 
 pub struct EndContext<'a> {
     pub system: &'a mut SystemContext,
     pub entity: &'a mut Entity,
+    pub time: Duration,
     pub scene: &'a mut Scene,
 }
 

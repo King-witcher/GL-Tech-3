@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::{Ray, SystemContext, engine::Input, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
@@ -46,12 +48,18 @@ impl Scene {
         }
     }
 
-    pub(crate) fn update(&mut self, input: Input, system: &mut SystemContext) {
+    pub(crate) fn update(
+        &mut self,
+        input: Input,
+        system: &mut SystemContext,
+        time: Duration,
+        delta_time: Duration,
+    ) {
         let ptr = self as *mut Scene;
         let current_entities = self.entities_mut().collect::<Vec<_>>();
         for entity in current_entities {
             let second_ref = unsafe { &mut *ptr };
-            entity.update(second_ref, input.clone(), system);
+            entity.update(second_ref, time, delta_time, input.clone(), system);
         }
     }
 
