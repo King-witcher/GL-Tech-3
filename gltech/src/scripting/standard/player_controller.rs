@@ -1,3 +1,4 @@
+use crate::prelude::*;
 use sdl2::keyboard::Scancode;
 
 use crate::{EndContext, Input, Script, StartContext, UpdateContext, Vector};
@@ -52,9 +53,7 @@ impl Script for FlatPlayerController {
         let delta_time = ctx.delta_time.as_secs_f32();
 
         let wish_dir = Self::wish_dir(ctx.scene.camera.ray.dir, ctx.input.clone());
-        ctx.scene
-            .camera
-            .translate(wish_dir * self.speed * delta_time);
+        ctx.scene.camera.r#move(wish_dir * self.speed * delta_time);
 
         let mouse_delta = ctx.input.mouse_rel().0;
         ctx.scene

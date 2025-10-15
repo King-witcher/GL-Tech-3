@@ -8,16 +8,17 @@ use crate::world::empty::Empty;
 use crate::{StartContext, SystemContext, UpdateContext, prelude::*};
 
 pub(crate) enum EntityInner {
-    Empty(Empty),
-    Plane(Plane),
+    Empty(NonNull<Empty>),
+    Plane(NonNull<Plane>),
 }
 
 pub struct Entity {
     pub(crate) inner: EntityInner,
-
-    relative_pos: Vector,
-    relative_dir: Vector,
     parent: Option<NonNull<Entity>>,
+    scene: Option<NonNull<Scene>>,
+    children: Vec<NonNull<Entity>>,
+
+    relative: Pose,
     scripts: Vec<Box<dyn Script>>,
 }
 
@@ -26,115 +27,90 @@ impl Entity {
         self.scripts.push(script);
     }
 
-    fn inner_pos(&self) -> Vector {
-        match self.inner {
-            EntityInner::Empty(ref empty) => empty.pos,
-            EntityInner::Plane(ref plane) => plane.pos(),
+    pub fn parent(&self) -> Option<&mut Entity> {
+        match self.parent {
+            Some(mut parent) => unsafe { Some(parent.as_mut()) },
+            None => None,
         }
     }
 
-    fn inner_dir(&self) -> Vector {
-        match self.inner {
-            EntityInner::Empty(ref empty) => empty.dir,
-            EntityInner::Plane(ref plane) => plane.dir(),
+    pub fn set_parent(&mut self, parent: Option<&mut Entity>) {
+        if let Some(ref parent) = parent {
+            assert!(
+                self.scene == parent.scene,
+                "Cannot set parent from a different scene"
+            );
+        }
+
+        unsafe {
+            let self_ptr = NonNull::new_unchecked(self as *mut Entity);
+
+            // Remove from the previous parent's children list
+            if let Some(parent) = self.parent() {
+                parent.children.retain(|&c| c != self_ptr);
+            }
+
+            match parent {
+                Some(new_parent) => {
+                    new_parent.children.push(self_ptr);
+
+                    self.parent = Some(NonNull::new_unchecked(new_parent as *mut Entity));
+                }
+                None => {
+                    self.parent = None;
+                }
+            }
         }
     }
 
-    fn set_inner_pos(&mut self, pos: impl Into<Vector>) {
-        match self.inner {
-            EntityInner::Empty(ref mut empty) => {
-                empty.pos = pos.into();
-            }
-            EntityInner::Plane(ref mut plane) => {
-                plane.segment.start = pos.into();
+    fn inner_pose(&self) -> Pose {
+        unsafe {
+            match self.inner {
+                EntityInner::Empty(empty) => empty.as_ref().pose,
+                EntityInner::Plane(plane) => plane.as_ref().pose,
             }
         }
     }
 
-    fn set_inner_dir(&mut self, dir: impl Into<Vector>) {
-        match self.inner {
-            EntityInner::Empty(ref mut empty) => {
-                empty.dir = dir.into();
-            }
-            EntityInner::Plane(ref mut plane) => {
-                plane.segment.dir = dir.into();
+    fn set_inner_pose(&mut self, pose: Pose) {
+        unsafe {
+            match self.inner {
+                EntityInner::Empty(mut empty) => empty.as_mut().pose = pose,
+                EntityInner::Plane(mut plane) => plane.as_mut().pose = pose,
             }
         }
     }
 
+    /// Update relative components based on parent's and own absolute components.
+    ///
+    /// Called when either parent element or its absolute position changes.
+    fn update_relative(&mut self) {
+        match self.parent {
+            Some(parent) => {
+                let parent = unsafe { parent.as_ref() };
+                self.relative = self.inner_pose().as_relative_to(parent.inner_pose());
+            }
+            None => {
+                self.relative = self.inner_pose();
+            }
+        }
+    }
+
+    /// Update real components based on relative components and parent's real components, if any.
     fn follow_parent(&mut self) {
         match self.parent {
-            Some(_) => {
-                todo!()
-            }
-            None => {}
-        }
-    }
-
-    pub fn pos(&self) -> Vector {
-        if self.parent.is_none() {
-            self.inner_pos()
-        } else {
-            self.relative_pos
-        }
-    }
-
-    pub fn dir(&self) -> Vector {
-        if self.parent.is_none() {
-            self.inner_dir()
-        } else {
-            self.relative_dir
-        }
-    }
-
-    pub fn angle(&self) -> f32 {
-        self.dir().angle()
-    }
-
-    pub fn set_pos(&mut self, pos: impl Into<Vector>) {
-        match self.parent {
-            Some(_) => {
-                self.relative_pos = pos.into();
-                self.follow_parent();
+            Some(parent) => {
+                let parent = unsafe { parent.as_ref() };
+                self.set_inner_pose(self.relative.as_absolute_from(parent.inner_pose()));
             }
             None => {
-                self.set_inner_pos(pos.into());
+                self.set_inner_pose(self.relative);
             }
         }
-    }
 
-    pub fn set_dir(&mut self, dir: impl Into<Vector>) {
-        match self.parent {
-            Some(_) => {
-                self.relative_dir = dir.into();
-                self.follow_parent();
-            }
-            None => {
-                self.set_inner_dir(dir.into());
-            }
+        for child in self.children.iter_mut() {
+            unsafe { child.as_mut().follow_parent() };
         }
-    }
-
-    pub fn set_angle(&mut self, angle: f32) {
-        let new_dir = Vector::from_deg(angle);
-        self.set_dir(new_dir);
-    }
-
-    pub fn translate(&mut self, delta: impl Into<Vector>) {
-        let new_pos = self.pos() + delta.into();
-        self.set_pos(new_pos);
-    }
-
-    pub fn transform(&mut self, transformation: impl Into<Vector>) {
-        let dir = self.dir();
-        let new_dir = dir.cmul(transformation.into());
-        self.set_dir(new_dir);
-    }
-
-    pub fn rotate(&mut self, angle: f32) {
-        let dir = self.dir();
-        let new_dir = dir.cmul(Vector::from_deg(angle));
-        self.set_dir(new_dir);
     }
 
     pub(crate) fn start(&mut self, scene: &mut Scene, system: &mut SystemContext) {
@@ -151,7 +127,7 @@ impl Entity {
         }
     }
 
-    pub(crate) fn update(
+    pub(crate) fn tick(
         &mut self,
         scene: &mut Scene,
         time: Duration,
@@ -177,16 +153,34 @@ impl Entity {
     }
 }
 
+// TODO: Optimize
+impl Posed for Entity {
+    fn pose(&self) -> Pose {
+        self.relative
+    }
+
+    fn set_pose(&mut self, pose: Pose) {
+        self.relative = pose;
+        self.follow_parent();
+    }
+}
+
 impl From<Plane> for Entity {
     fn from(plane: Plane) -> Self {
-        let pos = plane.segment.start + plane.segment.dir * 0.5;
-        let dir = plane.dir();
+        let relative = plane.pose;
+
+        let inner = unsafe {
+            let boxed = Box::new(plane);
+            let raw = Box::into_raw(boxed);
+            NonNull::new_unchecked(raw)
+        };
 
         Self {
-            relative_pos: pos,
-            relative_dir: dir,
+            relative,
             parent: None,
-            inner: EntityInner::Plane(plane),
+            scene: None,
+            inner: EntityInner::Plane(inner),
+            children: Vec::new(),
             scripts: Vec::new(),
         }
     }
@@ -194,11 +188,20 @@ impl From<Plane> for Entity {
 
 impl From<Empty> for Entity {
     fn from(empty: Empty) -> Self {
+        let relative = empty.pose;
+
+        let inner = unsafe {
+            let boxed = Box::new(empty);
+            let raw = Box::into_raw(boxed);
+            NonNull::new_unchecked(raw)
+        };
+
         Self {
-            relative_pos: empty.pos,
-            relative_dir: empty.dir,
+            relative,
+            scene: None,
             parent: None,
-            inner: EntityInner::Empty(empty),
+            inner: EntityInner::Empty(inner),
+            children: Vec::new(),
             scripts: Vec::new(),
         }
     }

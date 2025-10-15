@@ -72,13 +72,13 @@ impl Q1Controller {
         }
 
         let delta_time = ctx.delta_time.as_secs_f32();
-        ctx.scene.camera.z += self.z_speed * delta_time;
-        if ctx.scene.camera.z < self.height {
-            ctx.scene.camera.z = self.height;
+        ctx.scene.camera.z += self.z_speed * delta_time / 100.0;
+        if ctx.scene.camera.z < self.height / 100.0 {
+            ctx.scene.camera.z = self.height / 100.0;
             self.grounded = true;
             self.z_speed = 0.0;
-        } else if ctx.scene.camera.z > 100.0 {
-            ctx.scene.camera.z = 100.0;
+        } else if ctx.scene.camera.z > 1.0 {
+            ctx.scene.camera.z = 1.0;
             self.z_speed = 0.0;
         }
 
@@ -175,7 +175,7 @@ impl Q1Controller {
 
 impl Script for Q1Controller {
     fn start(&mut self, ctx: StartContext) {
-        ctx.scene.camera.z = self.height;
+        ctx.scene.camera.z = self.height / 100.0;
         ctx.system.set_capture_mouse(true);
     }
 
@@ -189,7 +189,7 @@ impl Script for Q1Controller {
         ctx.scene
             .camera
             .ray
-            .translate(self.velocity * ctx.delta_time.as_secs_f32());
+            .r#move(self.velocity * ctx.delta_time.as_secs_f32() / 100.0);
     }
 
     fn end(&mut self, _ctx: EndContext) {}

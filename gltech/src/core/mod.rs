@@ -1,7 +1,5 @@
-mod segment;
-mod spatial;
+mod pose;
 mod vector;
 
-pub use segment::*;
-pub use spatial::*;
+pub use pose::*;
 pub use vector::*;

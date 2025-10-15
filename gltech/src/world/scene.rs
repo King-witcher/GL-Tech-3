@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::{Ray, SystemContext, engine::Input, world::*};
+use crate::{Pose, SystemContext, engine::Input, world::*};
 
 // The Scene owns its entities and is responsible for dropping them when it goes out of scope. However, auxiliar structs
 // like planes are owned by entities and the Scene only holds references to them for rendering and collision detection.
@@ -27,16 +27,10 @@ impl Scene {
     }
 
     pub fn planes(&self) -> impl Iterator<Item = &Plane> {
-        self.children
-            .iter()
-            .filter(|e| matches!(e.inner, EntityInner::Plane(_)))
-            .map(|e| {
-                if let EntityInner::Plane(ref plane) = e.inner {
-                    plane
-                } else {
-                    unreachable!()
-                }
-            })
+        self.children.iter().filter_map(|e| match e.inner {
+            EntityInner::Plane(plane) => unsafe { Some(plane.as_ref()) },
+            _ => None,
+        })
     }
 
     pub(crate) fn start(&mut self, system: &mut SystemContext) {
@@ -59,16 +53,16 @@ impl Scene {
         let current_entities = self.entities_mut().collect::<Vec<_>>();
         for entity in current_entities {
             let second_ref = unsafe { &mut *ptr };
-            entity.update(second_ref, time, delta_time, input.clone(), system);
+            entity.tick(second_ref, time, delta_time, input.clone(), system);
         }
     }
 
-    pub fn raycast(&self, ray: Ray) -> Option<(&Plane, (f32, f32))> {
+    pub fn raycast(&self, ray: Pose) -> Option<(&Plane, (f32, f32))> {
         let mut rs = (f32::INFINITY, f32::INFINITY);
         let mut nearest_plane = None;
 
         for plane in self.planes() {
-            let (distance, split) = ray.get_rs(plane.segment);
+            let (distance, split) = ray.get_rs(plane.pose);
 
             if distance < 0.0 || split < 0.0 || split >= 1.0 {
                 continue;
