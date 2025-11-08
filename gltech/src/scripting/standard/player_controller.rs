@@ -24,16 +24,16 @@ impl FlatPlayerController {
         let mut dir = Vector::ZERO;
 
         if input.is_key_down(Scancode::W) {
-            dir += Vector::FORWARD;
+            dir += Vector::EAST;
         }
         if input.is_key_down(Scancode::S) {
-            dir += Vector::BACK;
+            dir += Vector::WEST;
         }
         if input.is_key_down(Scancode::A) {
-            dir += Vector::LEFT;
+            dir += Vector::NORTH;
         }
         if input.is_key_down(Scancode::D) {
-            dir += Vector::RIGHT;
+            dir += Vector::SOUTH;
         }
 
         if dir.mag() != 0.0 {

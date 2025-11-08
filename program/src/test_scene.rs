@@ -11,8 +11,9 @@ use gltech::{
 
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let file_system = file_system::load_file_system()?;
-    let bianca = file_system.get("bianca.jpg")?;
-    let image = images::get_from_file(bianca)?;
+    let image = file_system.get("bianca.jpg")?;
+    let image = images::get_from_file(image)?;
+    image.cheap_clone();
     let mut scene = Scene::new();
 
     // Rotating plane 1

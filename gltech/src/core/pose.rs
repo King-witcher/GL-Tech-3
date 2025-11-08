@@ -8,8 +8,11 @@ pub struct Pose {
 
 impl Pose {
     #[inline]
-    pub fn new(pos: Vector, dir: Vector) -> Self {
-        Self { pos, dir }
+    pub fn new(pos: impl Into<Vector>, dir: impl Into<Vector>) -> Self {
+        Self {
+            pos: pos.into(),
+            dir: dir.into(),
+        }
     }
 
     #[inline]
@@ -125,6 +128,15 @@ impl Posed for Pose {
 
     fn set_pose(&mut self, pose: Pose) {
         *self = pose;
+    }
+}
+
+impl Default for Pose {
+    fn default() -> Self {
+        Self {
+            pos: Vector::ZERO,
+            dir: Vector::EAST,
+        }
     }
 }
 

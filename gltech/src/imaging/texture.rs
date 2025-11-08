@@ -42,9 +42,9 @@ impl Texture {
     #[inline]
     pub fn map_nearest(&self, u: f32, v: f32) -> Color {
         let x =
-            (self.source.widthf * (self.hrepeat * u + self.hoffset)) as u32 % self.source.width();
+            (self.source.widthf * (self.hrepeat * u + self.hoffset)) as i32 % self.source.width();
         let y =
-            (self.source.heightf * (self.vrepeat * v + self.voffset)) as u32 % self.source.height();
+            (self.source.heightf * (self.vrepeat * v + self.voffset)) as i32 % self.source.height();
 
         self.source.get(x, y)
     }
@@ -57,8 +57,8 @@ impl Texture {
         let x = wf * (self.hrepeat * u + self.hoffset) % wf;
         let y = hf * (self.vrepeat * v + self.voffset) % hf;
 
-        let x0 = x as u32;
-        let y0 = y as u32;
+        let x0 = x as i32;
+        let y0 = y as i32;
 
         let tx = x - x0 as f32;
         let ty = y - y0 as f32;
@@ -72,5 +72,17 @@ impl Texture {
         let bottom = q12.lerp(q22, tx);
 
         return top.lerp(bottom, ty);
+    }
+}
+
+impl Clone for Texture {
+    fn clone(&self) -> Self {
+        Self {
+            source: self.source.cheap_clone(),
+            hoffset: self.hoffset,
+            voffset: self.voffset,
+            hrepeat: self.hrepeat,
+            vrepeat: self.vrepeat,
+        }
     }
 }

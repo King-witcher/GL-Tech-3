@@ -1,11 +1,13 @@
-use std::{alloc::Layout, sync::Arc};
+use std::cell::UnsafeCell;
+
+use shared_vector::{RefCountedVector, SharedVector};
 
 use crate::imaging::Color;
 
 pub struct Image {
-    buffer: Arc<Color>,
-    width: u32,
-    height: u32,
+    buffer: SharedVector<UnsafeCell<Color>>,
+    width: i32,
+    height: i32,
     pub(crate) widthf: f32,
     pub(crate) heightf: f32,
 }
@@ -14,13 +16,8 @@ unsafe impl Send for Image {}
 unsafe impl Sync for Image {}
 
 impl Image {
-    pub fn new(width: u32, height: u32) -> Self {
-        let layout = Layout::array::<Color>((width * height) as usize).unwrap();
-
-        let buffer = unsafe {
-            let ptr = std::alloc::alloc(layout) as *mut Color;
-            Arc::from_raw(ptr)
-        };
+    pub fn new(width: i32, height: i32) -> Self {
+        let buffer = RefCountedVector::with_capacity((width * height) as usize);
 
         Self {
             buffer,
@@ -32,6 +29,7 @@ impl Image {
     }
 
     pub fn cheap_clone(&self) -> Self {
+        println!("Cloning image");
         Self {
             buffer: self.buffer.clone(),
             width: self.width,
@@ -43,21 +41,21 @@ impl Image {
 
     #[inline]
     pub(crate) fn byte_slice(&self) -> &[u8] {
-        unsafe { std::slice::from_raw_parts(self.u8_buffer(), self.size()) }
+        self.buffer.as_slice()
     }
 
     #[inline]
-    pub fn dimensions(&self) -> (u32, u32) {
+    pub fn dimensions(&self) -> (i32, i32) {
         (self.width, self.height)
     }
 
     #[inline]
-    pub fn width(&self) -> u32 {
+    pub fn width(&self) -> i32 {
         self.width
     }
 
     #[inline]
-    pub fn height(&self) -> u32 {
+    pub fn height(&self) -> i32 {
         self.height
     }
 
@@ -66,51 +64,52 @@ impl Image {
     }
 
     #[inline]
-    pub(crate) fn u32_buffer(&self) -> *mut u32 {
-        self.buffer.as_ref() as *const Color as *mut u32
+    pub(crate) fn u32_buffer(&self) -> *mut i32 {
+        self.buffer.as_ref() as *const [Color] as *mut i32
     }
 
     #[inline]
-    pub(crate) unsafe fn buffer(&self) -> *mut Color {
-        self.buffer.as_ref() as *const Color as *mut Color
+    pub(crate) unsafe fn mut_ptr(&self) -> &mut [Color] {
+        unsafe {
+            let ptr = self.buffer.as_ref() as *const [Color] as *mut [Color];
+            &mut *ptr
+        }
     }
 
     #[inline]
     pub(crate) fn u8_buffer(&self) -> *mut u8 {
-        self.buffer.as_ref() as *const Color as *mut u8
+        self.buffer.get().cast::<u8>()
     }
 
     #[inline]
-    pub fn get(&self, x: u32, y: u32) -> Color {
-        let index: usize = (x + self.width * y) as usize;
+    pub fn get(&self, x: i32, y: i32) -> Color {
         unsafe {
-            let mut buffer = self.buffer();
-            buffer = buffer.add(index);
-            *buffer
+            let index: usize = (x + self.width * y) as usize;
+            *self.buffer[index].get()
         }
     }
 
     #[inline]
-    pub(crate) fn set_unsafe(&self, x: u32, y: u32, value: Color) {
+    pub(crate) fn set_unsafe(&self, x: i32, y: i32, value: Color) {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
-            let mut buffer = self.buffer();
-            buffer = buffer.add(index);
-            *buffer = value;
+            let reference = &self.buffer[index];
+            let mutable = reference.get();
+            *mutable = value;
         }
     }
 
     #[inline]
-    pub fn set(&self, x: u32, y: u32, value: Color) {
+    pub fn set(&self, x: i32, y: i32, value: Color) {
         let index: usize = (x + self.width * y) as usize;
         unsafe {
-            let mut buffer = self.buffer();
-            buffer = buffer.add(index);
-            *buffer = value;
+            let reference = &self.buffer[index];
+            let mutable = reference.get();
+            *mutable = value;
         }
     }
 
-    pub fn coordinates(&self) -> impl Iterator<Item = (u32, u32)> {
+    pub fn coordinates(&self) -> impl Iterator<Item = (i32, i32)> {
         (0..self.height).flat_map(move |y| (0..self.width).map(move |x| (x, y)))
     }
 }

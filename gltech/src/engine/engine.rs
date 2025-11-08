@@ -7,7 +7,7 @@ use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 pub struct GLTechContext {
     borderless: bool,
     fullscreen: bool,
-    resolution: Option<(u32, u32)>,
+    resolution: Option<(i32, i32)>,
     sdl: sdl2::Sdl,
     title: String,
     video: sdl2::VideoSubsystem,
@@ -40,7 +40,7 @@ impl GLTechContext {
         self
     }
 
-    pub fn resolution(&mut self, width: u32, height: u32) -> &mut Self {
+    pub fn resolution(&mut self, width: i32, height: i32) -> &mut Self {
         self.resolution = Some((width, height));
         self
     }
@@ -133,13 +133,13 @@ impl GLTechContext {
         Ok(())
     }
 
-    fn get_resolution(&self) -> Result<(u32, u32), String> {
+    fn get_resolution(&self) -> Result<(i32, i32), String> {
         if let Some(res) = self.resolution {
             return Ok(res);
         } else {
             if self.fullscreen {
                 let display_mode = self.video.current_display_mode(0)?;
-                Ok((display_mode.w as u32, display_mode.h as u32))
+                Ok((display_mode.w as i32, display_mode.h as i32))
             } else {
                 Ok((1600, 900))
             }
@@ -163,7 +163,7 @@ impl GLTechContext {
     fn create_window(&self) -> Result<sdl2::video::Window, String> {
         let (width, height) = self.get_resolution()?;
 
-        let mut window_builder = self.video.window(&self.title, width, height);
+        let mut window_builder = self.video.window(&self.title, width as u32, height as u32);
 
         if self.fullscreen {
             window_builder.fullscreen_desktop();
@@ -194,7 +194,7 @@ impl GLTechContext {
         let (width, height) = self.get_resolution()?;
 
         let mut texture = texture_creator
-            .create_texture_static(PixelFormatEnum::ARGB8888, width, height)
+            .create_texture_static(PixelFormatEnum::ARGB8888, width as u32, height as u32)
             .map_err(|e| e.to_string())?;
 
         texture.set_scale_mode(sdl2::render::ScaleMode::Best);

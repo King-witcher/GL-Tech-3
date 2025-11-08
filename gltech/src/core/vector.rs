@@ -75,14 +75,19 @@ impl Vector {
 }
 
 // Constants
-
 impl Vector {
     pub const ZERO: Vector = Vector(0.0, 0.0);
     pub const IDENTITY: Vector = Vector(1.0, 1.0);
-    pub const FORWARD: Vector = Vector(1.0, 0.0);
-    pub const RIGHT: Vector = Vector(0.0, -1.0);
-    pub const LEFT: Vector = Vector(0.0, 1.0);
-    pub const BACK: Vector = Vector(-1.0, 0.0);
+
+    pub const NORTH: Vector = Vector(0.0, 1.0);
+    pub const SOUTH: Vector = Vector(0.0, -1.0);
+    pub const EAST: Vector = Vector(1.0, 0.0);
+    pub const WEST: Vector = Vector(-1.0, 0.0);
+
+    pub const LEFT: Vector = Vector::NORTH;
+    pub const RIGHT: Vector = Vector::SOUTH;
+    pub const FORWARD: Vector = Vector::EAST;
+    pub const BACK: Vector = Vector::WEST;
 }
 
 impl Add for Vector {
@@ -194,6 +199,13 @@ impl From<(f32, f32)> for Vector {
     #[inline]
     fn from(tuple: (f32, f32)) -> Self {
         Vector(tuple.0, tuple.1)
+    }
+}
+
+impl From<(u32, u32)> for Vector {
+    #[inline]
+    fn from(tuple: (u32, u32)) -> Self {
+        Vector(tuple.0 as f32, tuple.1 as f32)
     }
 }
 

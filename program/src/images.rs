@@ -1,5 +1,6 @@
 use std::io;
 
+use gltech::Color;
 use image::GenericImageView;
 use thiserror::Error;
 
@@ -20,13 +21,9 @@ pub enum LoadImageError {
 
 pub fn get_from_file(bytes: &Vec<u8>) -> Result<gltech::Image, LoadImageError> {
     let image = image::load_from_memory(bytes)?;
-    let result = gltech::Image::new(image.width(), image.height());
+    let result = gltech::Image::new(image.width() as i32, image.height() as i32);
     for (x, y, pixel) in image.pixels() {
-        result.set(
-            x,
-            y,
-            gltech::imaging::Color::rgb(pixel[0], pixel[1], pixel[2]),
-        );
+        result.set(x as i32, y as i32, Color::rgb(pixel[0], pixel[1], pixel[2]));
     }
     Ok(result)
 }

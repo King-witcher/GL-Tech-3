@@ -9,7 +9,7 @@ pub struct Camera {
 impl Default for Camera {
     fn default() -> Self {
         Self {
-            ray: Pose::new(Vector::ZERO, Vector::FORWARD),
+            ray: Pose::new(Vector::ZERO, Vector::EAST),
             z: 50.0,
             fov: 90.0,
         }

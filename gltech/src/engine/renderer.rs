@@ -20,7 +20,7 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
     (0..width).into_par_iter().for_each(|col| {
         let (width, height) = image.dimensions();
         let ray = {
-            let delta = (width >> 1) as i32 - col as i32;
+            let delta = (width >> 1) - col;
             let dir = camera_dir + camera_left * step0 * delta as f32;
             Pose::new(camera_pos, dir)
         };
@@ -33,8 +33,8 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
         let col_start = (image.heightf - 1.0 - col_h) * 0.5 + col_h * (camera.z - 0.5);
         let col_end = (image.heightf - 1.0 + col_h) * 0.5 + col_h * (camera.z - 0.5);
 
-        let mut draw_col_start = height as i32 - (image.heightf - col_start) as i32; // Inclusive
-        let mut draw_col_end = height as i32 - (image.heightf - col_end) as i32; // Exclusive
+        let mut draw_col_start = height - (image.heightf - col_start) as i32; // Inclusive
+        let mut draw_col_end = height - (image.heightf - col_end) as i32; // Exclusive
 
         if draw_col_start < 0 {
             draw_col_start = 0;
@@ -48,7 +48,7 @@ pub fn draw_planes(camera: &Camera, planes: Vec<&Plane>, image: &Image) {
         for line in draw_col_start..draw_col_end {
             let v = (line as f32 - col_start) * i_col_h;
             let color = plane.texture.map_nearest(collision_s, v);
-            image.set_unsafe(col as u32, line as u32, color);
+            image.set_unsafe(col, line, color);
         }
     });
 }
