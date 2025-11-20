@@ -1,46 +1,47 @@
-use crate::imaging::{Color, Image};
+use crate::{Color, Image};
 
-pub struct Texture {
+pub struct TextureClip {
     source: Image,
     hoffset: f32,
     voffset: f32,
     hrepeat: f32,
     vrepeat: f32,
+    widthf: f32,
+    heightf: f32,
 }
 
-impl Texture {
-    pub fn new(source: Image) -> Self {
+pub struct TextureClipCreateInfo {
+    pub image: Image,
+    pub hoffset: f32,
+    pub voffset: f32,
+    pub hrepeat: f32,
+    pub vrepeat: f32,
+    // pub mipmap_levels: u32,
+}
+
+impl TextureClip {
+    pub fn new(create_info: TextureClipCreateInfo) -> Self {
+        let TextureClipCreateInfo {
+            image,
+            hoffset,
+            voffset,
+            hrepeat,
+            vrepeat,
+        } = create_info;
+
         Self {
-            source,
-            hoffset: 0.0,
-            voffset: 0.0,
-            hrepeat: 1.0,
-            vrepeat: 1.0,
+            hoffset,
+            voffset,
+            hrepeat,
+            vrepeat,
+            widthf: image.width() as f32,
+            heightf: image.height() as f32,
+            source: image,
         }
     }
 
     #[inline]
-    pub fn hoffset(&self) -> f32 {
-        self.hoffset
-    }
-
-    #[inline]
-    pub fn voffset(&self) -> f32 {
-        self.voffset
-    }
-
-    #[inline]
-    pub fn hrepeat(&self) -> f32 {
-        self.hrepeat
-    }
-
-    #[inline]
-    pub fn vrepeat(&self) -> f32 {
-        self.vrepeat
-    }
-
-    #[inline]
-    pub fn map_nearest(&self, u: f32, v: f32) -> Color {
+    pub(crate) fn map_nearest(&self, u: f32, v: f32) -> Color {
         let x =
             (self.source.widthf * (self.hrepeat * u + self.hoffset)) as i32 % self.source.width();
         let y =
@@ -50,7 +51,7 @@ impl Texture {
     }
 
     #[inline]
-    pub fn map_bilinear(&self, u: f32, v: f32) -> Color {
+    pub(crate) fn map_bilinear(&self, u: f32, v: f32) -> Color {
         let wf = self.source.widthf - 1.0;
         let hf = self.source.heightf - 1.0;
 
@@ -75,7 +76,7 @@ impl Texture {
     }
 }
 
-impl Clone for Texture {
+impl Clone for TextureClip {
     fn clone(&self) -> Self {
         Self {
             source: self.source.cheap_clone(),
@@ -83,6 +84,8 @@ impl Clone for Texture {
             voffset: self.voffset,
             hrepeat: self.hrepeat,
             vrepeat: self.vrepeat,
+            widthf: self.widthf,
+            heightf: self.heightf,
         }
     }
 }

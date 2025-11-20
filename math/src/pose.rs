@@ -1,5 +1,6 @@
 use crate::Vector;
 
+/// Represents a position and direction/rotation in 2D space.
 #[derive(Clone, Copy, Debug)]
 pub struct Pose {
     pub pos: Vector,
@@ -114,6 +115,7 @@ pub trait Posed {
     #[inline]
     fn rotate(&mut self, angle: f32) {
         let trans = Vector::from_deg(angle);
+        println!("Rotation transformation: {}", trans);
         let dir = self.dir();
         self.set_dir(dir.cmul(trans));
     }

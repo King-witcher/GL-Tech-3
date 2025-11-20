@@ -53,7 +53,9 @@ impl Scene {
         let current_entities = self.entities_mut().collect::<Vec<_>>();
         for entity in current_entities {
             let second_ref = unsafe { &mut *ptr };
+            println!("Updating entity");
             entity.tick(second_ref, time, delta_time, input.clone(), system);
+            println!("Ticked entity");
         }
     }
 

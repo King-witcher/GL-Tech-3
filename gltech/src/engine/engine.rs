@@ -1,7 +1,10 @@
 use std::time::Instant;
 
-use super::renderer;
-use crate::{Image, Input, Scene, SysRequest, SystemContext};
+// use super::renderer;
+use crate::{Input, Scene, SysRequest, SystemContext};
+use ::renderer::Renderer2;
+use math::{Pose, Vector};
+use renderer;
 use sdl2::{pixels::PixelFormatEnum, render::TextureCreator};
 
 pub struct GLTechContext {
@@ -71,6 +74,7 @@ impl GLTechContext {
         let mut screen_texture = self.get_screen_texture(&texture_creator)?;
         let (width, height) = self.get_resolution()?;
         let mut gltech_surface = crate::Image::new(width, height);
+        let mut renderer = Renderer2::new(width, height);
 
         // Get an event pump and start the main loop
         let mut event_pump = self.sdl.event_pump()?;
@@ -78,20 +82,62 @@ impl GLTechContext {
         // Main loop
         let mut frame_time = Instant::now();
         let mut input_handler = Input::new();
+
+        let mut dir = Vector::EAST;
+
+        loop {
+            self.process_requests(&mut system_context);
+
+            // Render the scene to the surface
+            renderer.clear();
+            renderer.render(Pose::new(Vector::ZERO, dir), 0.5);
+            let gltech_image = renderer.frame_buffer();
+
+            // Present the surface on the screen
+            Self::present(&mut canvas, &mut screen_texture, gltech_image)?;
+
+            input_handler.update(event_pump.poll_iter());
+            if input_handler.exit {
+                break;
+            }
+
+            // Update input and check for exit event (usually window close)
+            input_handler.update(event_pump.poll_iter());
+            if input_handler.exit {
+                break;
+            }
+
+            // Update the scene with input and time data
+            let delta_time = frame_time.elapsed();
+            frame_time = Instant::now();
+            // scene.update(
+            //     input_handler.clone(),
+            //     &mut system_context,
+            //     start_time.elapsed(),
+            //     delta_time,
+            // );
+
+            // Check if any script requested exit
+            if system_context.exit {
+                break;
+            }
+        }
+
+        return Ok(());
         loop {
             // Process any requests from the last frame, such as changing resolution or fullscreen
             self.process_requests(&mut system_context);
 
             // Render the scene to the surface
             let planes: Vec<&crate::Plane> = scene.planes().collect();
-            renderer::draw_planes(&scene.camera, planes, &mut gltech_surface);
+            // renderer::draw_planes(&scene.camera, planes, &mut gltech_surface);
 
             // Present the surface on the screen
-            Self::present(
-                &mut canvas,
-                &mut screen_texture,
-                gltech_surface.cheap_clone(),
-            )?;
+            // Self::present(
+            //     &mut canvas,
+            //     &mut screen_texture,
+            //     gltech_surface.cheap_clone(),
+            // )?;
 
             // Update input and check for exit event (usually window close)
             input_handler.update(event_pump.poll_iter());
@@ -122,7 +168,7 @@ impl GLTechContext {
     fn present(
         canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
         texture: &mut sdl2::render::Texture,
-        image: Image,
+        image: renderer::Image,
     ) -> Result<(), String> {
         let slice = image.byte_slice();
         texture
@@ -172,6 +218,8 @@ impl GLTechContext {
         if self.borderless {
             window_builder.borderless();
         }
+
+        window_builder.position(-1000, 500);
 
         let window = window_builder.build().map_err(|e| e.to_string())?;
         Ok(window)

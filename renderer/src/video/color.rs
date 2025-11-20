@@ -8,7 +8,7 @@ impl Color {
     }
 
     #[inline]
-    pub const unsafe fn u32(self) -> u32 {
+    pub const fn u32(self) -> u32 {
         self.0
     }
 
@@ -26,11 +26,6 @@ impl Color {
     pub const fn b(self) -> u8 {
         self.0 as u8
     }
-
-    // #[inline]
-    // pub const fn a(self) -> u8 {
-    //     (self.0 & 0xFF) as u8
-    // }
 
     #[inline]
     pub const fn luma(self) -> u8 {
@@ -60,6 +55,13 @@ impl Color {
     pub const YELLOW: Color = Color::rgb(255, 255, 0);
     pub const CYAN: Color = Color::rgb(0, 255, 255);
     pub const MAGENTA: Color = Color::rgb(255, 0, 255);
+}
+
+impl Default for Color {
+    #[inline]
+    fn default() -> Self {
+        Self::BLACK
+    }
 }
 
 impl From<u32> for Color {

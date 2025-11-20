@@ -100,15 +100,19 @@ impl Entity {
     fn follow_parent(&mut self) {
         match self.parent {
             Some(parent) => {
+                println!("Following parent");
                 let parent = unsafe { parent.as_ref() };
                 self.set_inner_pose(self.relative.as_absolute_from(parent.inner_pose()));
             }
             None => {
+                println!("Following none");
                 self.set_inner_pose(self.relative);
             }
         }
 
         for child in self.children.iter_mut() {
+            println!("Making child follow parent");
+            dbg!(*child);
             unsafe { child.as_mut().follow_parent() };
         }
     }

@@ -1,7 +1,9 @@
 use crate::prelude::*;
 use sdl2::keyboard::Scancode;
 
-use crate::{EndContext, Input, Script, StartContext, UpdateContext, Vector};
+use math::Vector;
+
+use crate::{EndContext, Input, Script, StartContext, UpdateContext};
 
 pub struct FlatPlayerController {
     pub speed: f32,

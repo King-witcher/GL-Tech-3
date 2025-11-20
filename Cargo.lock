@@ -462,8 +462,10 @@ dependencies = [
 name = "gltech"
 version = "3.0.0"
 dependencies = [
+ "math",
  "rand 0.9.2",
  "rayon",
+ "renderer",
  "sdl2",
  "shared_vector",
 ]
@@ -654,6 +656,13 @@ checksum = "c60a23ffb90d527e23192f1246b14746e2f7f071cb84476dd879071696c18a4a"
 dependencies = [
  "crc",
  "sha2",
+]
+
+[[package]]
+name = "math"
+version = "0.0.0"
+dependencies = [
+ "rand 0.9.2",
 ]
 
 [[package]]
@@ -1043,6 +1052,15 @@ checksum = "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
+]
+
+[[package]]
+name = "renderer"
+version = "3.0.0"
+dependencies = [
+ "math",
+ "rand 0.9.2",
+ "rayon",
 ]
 
 [[package]]

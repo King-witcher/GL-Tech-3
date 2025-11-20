@@ -25,22 +25,32 @@ impl Vector {
     }
 
     #[inline]
-    pub fn dot_product(self, other: Vector) -> f32 {
+    pub const fn dot_product(self, other: Vector) -> f32 {
         self.x() * other.x() + self.y() * other.y()
     }
 
     #[inline]
-    pub fn x(&self) -> f32 {
+    pub const fn x(&self) -> f32 {
         self.0
     }
 
     #[inline]
-    pub fn y(&self) -> f32 {
+    pub const fn y(&self) -> f32 {
         self.1
     }
 
     #[inline]
-    pub fn cmul(self, by: Vector) -> Vector {
+    pub const fn left(&self) -> Vector {
+        Vector(-self.y(), self.x())
+    }
+
+    #[inline]
+    pub const fn right(&self) -> Vector {
+        Vector(self.y(), -self.x())
+    }
+
+    #[inline]
+    pub const fn cmul(self, by: Vector) -> Vector {
         Vector(
             self.x() * by.x() - self.y() * by.y(),
             self.x() * by.y() + self.y() * by.x(),
@@ -48,7 +58,7 @@ impl Vector {
     }
 
     #[inline]
-    pub fn cdiv(self, by: Vector) -> Vector {
+    pub const fn cdiv(self, by: Vector) -> Vector {
         let i_squares_sum = 1.0 / (by.x() * by.x() + by.y() * by.y());
         Vector(
             (self.x() * by.x() + self.y() * by.y()) * i_squares_sum,
@@ -63,7 +73,11 @@ impl Vector {
         }
 
         let temp = TO_DEG * f32::acos(self.x() / self.mag());
-        if self.y() >= 0.0 { temp } else { 360.0 - temp }
+        if self.y() >= 0.0 {
+            temp
+        } else {
+            360.0 - temp
+        }
     }
 
     // TODO: Optimize
